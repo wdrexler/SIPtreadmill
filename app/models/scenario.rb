@@ -25,6 +25,7 @@ class Scenario < ActiveRecord::Base
       SippyCup::XMLScenario.new name, sipp_xml, pcap_data, opts
     end
   end
+<<<<<<< HEAD
 
   def sippy_cup_scenario_steps
     sippy_cup_scenario.split("\n").map(&:chomp)
