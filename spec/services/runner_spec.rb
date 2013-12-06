@@ -1,17 +1,59 @@
 require 'spec_helper'
+require 'countdownlatch'
 
 describe Runner do
   let(:rtcp_listener) { double :rtcp_listener }
   let(:sippy_cup_runner) { double :sippy_cup_runner }
   let(:e) { StandardError.new }
 
-  context '#run_rtcp_listener' do
-    it 'should report exceptions thrown by the listener to Airbrake' do
-      RTCPTools::Listener.should_receive(:new).and_return rtcp_listener
+  context '#run_and_catch_errors' do
+    it 'should run the block passed to it' do
+      mock_obj = double 'mock object'
       runner = Runner.new 'larry', {my: :scenario}, {my: :profile}, {my: :target}
-      rtcp_listener.should_receive(:run).and_raise e
+      mock_obj.should_receive(:mock_method).once
+      runner.run_and_catch_errors do
+        mock_obj.mock_method
+      end
+    end
+
+    it 'should report exceptions to Airbrake if mode airbrake is specified' do
+      canary = double 'canary'
+      latch = CountDownLatch.new 1
+      runner = Runner.new 'larry', {my: :scenario}, {my: :profile}, {my: :target}
+      canary.should_receive(:bang!).and_raise e
       Airbrake.should_receive(:notify).with e
-      runner.run_rtcp_listener
+      runner.run_and_catch_errors mode: :notify do
+        canary.bang!
+        latch.countdown!
+      end
+      latch.wait 2
+      lambda { runner.check_ssh_errors }.should_not raise_error
+    end
+
+    it 'should not raise an SSH error if there were no problems with SSH' do
+      mock_obj = double 'mock obj'
+      latch = CountDownLatch.new 1
+      runner = Runner.new 'larry', {my: :scenario}, {my: :profile}, {my: :target}
+      mock_obj.should_receive(:mock_method).once
+      runner.run_and_catch_errors mode: :error do
+        mock_obj.mock_method
+        latch.countdown!
+      end 
+      latch.wait 2
+      lambda { runner.check_ssh_errors }.should_not raise_error
+    end
+
+    it 'should raise an error if there were problems with SSH' do
+      canary = double 'canary'
+      latch = CountDownLatch.new 1
+      runner = Runner.new 'larry', {my: :scenario}, {my: :profile}, {my: :target}
+      canary.should_receive(:bang!).and_raise e
+      runner.run_and_catch_errors mode: :error do
+        canary.bang!
+        latch.countdown!
+      end
+      latch.wait 2 
+      lambda { runner.check_ssh_errors }.should raise_error e
     end
   end
 
