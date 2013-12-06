@@ -30,7 +30,22 @@ class Scenario < ActiveRecord::Base
       write_to_disk File.join(dir, "#{prefix}.csv"), csv_data if csv_data.present?
     end
   end
-
+ 
+  def duplicate(requesting_user)
+    new_scenario_opts = { name: "#{self.name} (Copy)",
+                           description: self.description }
+    if sippy_cup_scenario.present?
+      new_scenario_opts[:sippy_cup_scenario] = self.sippy_cup_scenario
+    else
+      new_scenario_opts.merge! pcap_audio: self.pcap_audio, sipp_xml: self.sipp_xml,
+        csv_data: self.csv_data
+    end
+    new_scenario = Scenario.create new_scenario_opts
+    new_scenario.user = requesting_user
+    new_scenario.save ? new_scenario : nil
+  end
+ 
+   
   def writable?
     !(self.test_runs.count > 0)
   end
@@ -58,4 +73,5 @@ class Scenario < ActiveRecord::Base
       write_to_disk path, f.read, 'wb'
     end
   end
+
 end
