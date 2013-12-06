@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130930174850) do
+ActiveRecord::Schema.define(:version => 20131023225343) do
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
@@ -66,8 +66,8 @@ ActiveRecord::Schema.define(:version => 20130930174850) do
   create_table "system_load_data", :force => true do |t|
     t.integer  "test_run_id"
     t.float    "cpu"
-    t.float  "memory"
-    t.datetime  "logged_at"
+    t.float    "memory"
+    t.datetime "logged_at"
     t.datetime "created_at",  :null => false
     t.datetime "updated_at",  :null => false
   end
@@ -107,10 +107,11 @@ ActiveRecord::Schema.define(:version => 20130930174850) do
     t.string   "phone_number"
     t.string   "provider"
     t.string   "uid"
-    t.datetime "created_at",                      :null => false
-    t.datetime "updated_at",                      :null => false
-    t.boolean  "admin",        :default => false
-    t.boolean  "admin_mode",   :default => false
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
+    t.boolean  "admin",                :default => false
+    t.boolean  "admin_mode",           :default => false
+    t.string   "authentication_token"
   end
 
 end
