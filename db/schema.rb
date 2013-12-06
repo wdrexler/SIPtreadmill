@@ -117,11 +117,10 @@ ActiveRecord::Schema.define(:version => 20150216173416) do
     t.string   "phone_number"
     t.string   "provider"
     t.string   "uid"
-    t.datetime "created_at",                      :null => false
-    t.datetime "updated_at",                      :null => false
-    t.boolean  "admin",        :default => false
-    t.boolean  "admin_mode",   :default => false
-    t.string   "name"
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
+    t.boolean  "admin",                :default => false
+    t.boolean  "admin_mode",           :default => false
     t.string   "authentication_token"
   end
 
