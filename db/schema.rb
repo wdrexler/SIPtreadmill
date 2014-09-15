@@ -11,7 +11,11 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(:version => 20140101171241) do
+=======
+ActiveRecord::Schema.define(:version => 20131023225343) do
+>>>>>>> feature/rest
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
@@ -112,6 +116,7 @@ ActiveRecord::Schema.define(:version => 20140101171241) do
     t.boolean  "admin",        :default => false
     t.boolean  "admin_mode",   :default => false
     t.string   "name"
+    t.string   "authentication_token"
   end
 
 end
