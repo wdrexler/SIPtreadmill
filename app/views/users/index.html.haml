@@ -11,8 +11,7 @@
           %table.table.table-normal
             %thead
               %tr
-                %td First Name
-                %td Last Name
+                %td Name
                 %td Email
                 %td Phone Number
                 %td Admin?
@@ -21,8 +20,7 @@
             %tbody
             - @users.each do |user|
               %tr
-                %td= user.first_name
-                %td= user.last_name
+                %td= user.full_name
                 %td= user.email
                 %td= user.phone_number
                 %td.centered= render "partials/bool_badge", :check_val => user.admin

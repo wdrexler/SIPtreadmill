@@ -13,10 +13,8 @@
             %li= link_to '', edit_user_path(@user), class: 'btn btn-warning icon-edit', title: 'Edit'
         .box-content.padded
           %dl
-            %dt First Name
-            %dd= @user.first_name
-            %dt Last name
-            %dd= @user.last_name
+            %dt Name
+            %dd= @user.full_name
             %dt Email
             %dd= @user.email
             %dt Phone number
