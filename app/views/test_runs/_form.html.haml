@@ -14,15 +14,21 @@
         %span.help-inline.instructions
           Briefly describe this test. Note especially whether this is a baseline run, or note what changes you have made to the system under test. These notes will help when comparing test runs in the future.
     .row-fluid
-      .span12
+      .span6
         = f.label :scenario, label: "Sender scenario"
         = f.input_field :scenario, collection: Scenario.where(receiver: false).order(:name).all, id: "test_run_scenario_id", name: "test_run[scenario_id]", selected: @test_run.scenario_id, include_blank: true
         %span#sender_scenario_display.help-inline.instructions
+      .span6
+        = f.label :port1
+        = f.input_field :port1, id: "test_run_port1", name: "test_run[local_ports][0]"
     .row-fluid
-      .span12
+      .span6
         = f.label :receiver_scenario
         = f.input_field :receiver_scenario, collection: Scenario.where(receiver: true).order(:name).all, id: "test_run_receiver_scenario_id", name: "test_run[receiver_scenario_id]", selected: @test_run.receiver_scenario_id, include_blank: true
         %span#receiver_scenario_display.help-inline.instructions
+      .span6
+        = f.label :port2
+        = f.input_field :port2, id: "test_run_port2", name: "test_run[local_ports][1]"
     .row-fluid
       .span12
         = f.label :profile, for: "test_run_profile_id"
