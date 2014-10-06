@@ -98,6 +98,7 @@ ActiveRecord::Schema.define(:version => 20141005150720) do
     t.integer  "receiver_scenario_id"
     t.string   "error_name"
     t.text     "error_message"
+    t.text     "local_ports"
     t.text     "summary_report"
     t.string   "errors_report_file"
     t.string   "stats_file"
@@ -110,10 +111,10 @@ ActiveRecord::Schema.define(:version => 20141005150720) do
     t.string   "phone_number"
     t.string   "provider"
     t.string   "uid"
-    t.datetime "created_at",                      :null => false
-    t.datetime "updated_at",                      :null => false
-    t.boolean  "admin",        :default => false
-    t.boolean  "admin_mode",   :default => false
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
+    t.boolean  "admin",                :default => false
+    t.boolean  "admin_mode",           :default => false
     t.string   "name"
     t.string   "authentication_token"
   end
