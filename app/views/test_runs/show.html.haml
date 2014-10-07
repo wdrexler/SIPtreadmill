@@ -64,7 +64,7 @@
                   = time_ago_in_words(@test_run.updated_at) + " ago"
 
             %dt Status
-            %dd= status_label @test_run.state
+            %dd#statusLabel= status_label @test_run.state
 
             - if @test_run.state == 'complete_with_errors'
               %dt Error Name
@@ -142,15 +142,15 @@
             .box-content.padded
               %dl
                 %dt Total calls
-                %dd= @test_run.total_calls
+                %dd#totalCalls= @test_run.total_calls
                 %dt Successful calls
-                %dd= @test_run.successful_calls
+                %dd#successfulCalls= @test_run.successful_calls
                 %dt Failed calls
-                %dd= @test_run.failed_calls
+                %dd#failedCalls= @test_run.failed_calls
                 %dt Average call duration
-                %dd= @test_run.avg_call_duration
+                %dd#avgCallDuration= @test_run.avg_call_duration
                 %dt Average CPS
-                %dd= @test_run.avg_cps
+                %dd#avgCPS= @test_run.avg_cps
 
         .span6
           .box
@@ -159,18 +159,17 @@
             .box-content.padded
               %dl
                 %dt Average jitter
-                %dd= @test_run.avg_jitter
+                %dd#avgJitter= @test_run.avg_jitter
                 %dt Max jitter
-                %dd= @test_run.max_jitter
+                %dd#maxJitter= @test_run.max_jitter
                 %dt Average packet loss
-                %dd= @test_run.avg_packet_loss
+                %dd#avgPktLoss= @test_run.avg_packet_loss
                 %dt Max packet loss
-                %dd= @test_run.max_packet_loss
+                %dd#maxPktLoss= @test_run.max_packet_loss
 
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
     function countdown() {
-      console.log("Now: " + Date.now())
       window.testRunCD = $.countdown('#countdown-secs', {
         date: +(Date.now()) + 10000,
         render: function(data) {
@@ -185,6 +184,12 @@
       $('#graphs').hide();
       $('#stats').hide();
       countdown();
+    });
+- if @test_run.state == 'pending'
+  :javascript
+    $(function() {
+      $('#graphs').hide();
+      $('#stats').hide();
     });
 - if @test_run.state =~ /complete/
   :javascript
