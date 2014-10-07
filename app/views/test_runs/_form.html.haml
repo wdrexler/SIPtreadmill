@@ -20,7 +20,7 @@
         %span#sender_scenario_display.help-inline.instructions
       .span6
         %label{for: 'test_run_port1'} Sender Local Bind Port:
-        %input{id: "test_run_port1", name: "test_run[local_ports][0]"}
+        %input{id: "test_run_port1", name: "test_run[local_ports][0]", value: "#{@test_run.local_ports_array[0].present? ? @test_run.local_ports_array[0] : Kernel.rand(10000...65535)}" }
     .row-fluid
       .span6
         = f.label :receiver_scenario
@@ -28,7 +28,7 @@
         %span#receiver_scenario_display.help-inline.instructions
       .span6
         %label{for: 'test_run_port2'} Receiver Local Bind Port:
-        %input{id: "test_run_port2", name: "test_run[local_ports][1]"}
+        %input{id: "test_run_port2", name: "test_run[local_ports][1]", value: "#{@test_run.local_ports_array[1].present? ? @test_run.local_ports_array[1] : Kernel.rand(10000...65535)}" }
     .row-fluid
       .span12
         = f.label :profile, for: "test_run_profile_id"
