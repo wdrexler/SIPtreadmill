@@ -43,6 +43,23 @@ describe TestRun do
     end
   end
 
+  context "#html_status" do
+    it 'should return the proper values for a test run in the queued state' do
+      subject.state = 'queued'
+      subject.html_status.should == ['label-inverse', 'Queued']
+    end
+
+    it 'should return the proper values for a test run in the runnning state' do
+      subject.state = 'running'
+      subject.html_status.should == ['label-info', 'Running']
+    end
+
+    it 'should return the proper values for a test run in the complete state' do
+      subject.state = 'complete'
+      subject.html_status.should == ['label-success', 'Complete']
+    end
+  end
+
   context "#enqueue" do
     context "with a pending job" do
       let(:state) { 'pending' }

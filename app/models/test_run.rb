@@ -172,6 +172,30 @@ class TestRun < ActiveRecord::Base
     data.to_json
   end
 
+  def stats_json
+    { total_calls: self.total_calls, successful_calls: self.successful_calls,
+      failed_calls: self.failed_calls, avg_call_duration: self.avg_call_duration,
+      avg_jitter: self.avg_jitter, max_jitter: self.max_jitter,
+      avg_packet_loss: self.avg_packet_loss, max_packet_loss: self.max_packet_loss }
+  end
+
+  def html_status
+    case self.state
+    when 'pending'
+      ['', 'Pending']
+    when 'queued'
+      ['label-inverse', 'Queued']
+    when 'running'
+      ['label-info', 'Running']
+    when 'complete'
+      ['label-success', 'Complete']
+    when 'complete_with_warnings'
+      ['label-warning', 'Warnings']
+    when 'complete_with_errors'
+      ['label-important', 'Errors']
+    end
+  end
+
   state_machine :initial => :pending do
     after_transition on: :enqueue do |test_run, transition|
       jid = TestRunWorker.perform_async(test_run.id, transition.args.first)
