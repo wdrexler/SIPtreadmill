@@ -25,6 +25,25 @@ class TestRunsController < ApplicationController
     end
   end
 
+  # GET /test_runs/1/results.json
+  def results
+    @test_run = TestRun.accessible_by(current_ability).find(params[:id])
+
+    respond_to do |format|
+      format.json do
+        result = { status: @test_run.state }
+        if @test_run.state =~ /complete/
+          result[:results] = { total_calls: @test_run.total_calls_json, jitter: @test_run.jitter_json,
+                               packet_loss: @test_run.packet_loss_json, call_rate: @test_run.call_rate_json,
+                               target_resources: @test_run.target_resources_json }
+        else
+          result[:results] = nil
+        end
+        render json: result
+      end
+    end
+  end
+
   # GET /test_runs/new
   # GET /test_runs/new.json
   def new
