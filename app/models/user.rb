@@ -62,4 +62,24 @@ class User < ActiveRecord::Base
       break token unless User.where(authentication_token: token).first
     end
   end
+
+  def ensure_authentication_token
+    unless self.authentication_token.present?
+      self.new_auth_token!
+    end
+  end
+
+  def new_auth_token!
+    self.authentication_token = generate_authentication_token
+    self.save
+  end
+
+  private
+
+  def generate_authentication_token
+    loop do
+      token = Devise.friendly_token
+      break token unless User.where(authentication_token: token).first
+    end
+  end
 end
