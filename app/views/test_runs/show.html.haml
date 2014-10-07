@@ -95,7 +95,7 @@
                   = label_tag :password, "SSH Password for Target"
                 = submit_tag "Enqueue", {class: "btn btn-success"}
         - when 'queued'
-          .box
+          .box#inProgress
             .box-header
               %span.title Job is queued, #{@stats.enqueued} jobs in the queue
             .box-content.padded
@@ -105,7 +105,7 @@
               %p
                 = button_to "Cancel", cancel_test_run_path(@test_run), {class: "btn btn-danger"}
         - when 'running'
-          .box
+          .box#inProgress
             .box-header
               %span.title The job is running right now!
             .box-content.padded
@@ -114,60 +114,7 @@
                 %span#countdown-secs
               %p
                 = button_to "stop", stop_test_run_path(@test_run), {class: "btn btn-danger"}
-        - when 'complete', 'complete_with_warnings', 'complete_with_errors'
-          .row-fluid
-            .span12
-              .box
-                .box-header
-                  %span.title Test run results
-                .box-content.padded
-                  %h2 Total Calls
-                  #callsChart{style: 'height: 250px'}
-                    %svg
-                  %h3 Calls Per Second / Concurrent Calls
-                  #callRateChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Jitter
-                  #jitterChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Packet Loss
-                  #packetLossChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Target Resources
-                  #targetResourcesChart{style: 'height: 250px'}
-                    %svg
-          .row-fluid
-            .span6
-              .box
-                .box-header
-                  %span.title Performance
-                .box-content.padded
-                  %dl
-                    %dt Total calls
-                    %dd= @test_run.total_calls
-                    %dt Successful calls
-                    %dd= @test_run.successful_calls
-                    %dt Failed calls
-                    %dd= @test_run.failed_calls
-                    %dt Average call duration
-                    %dd= @test_run.avg_call_duration
-                    %dt Average CPS
-                    %dd= @test_run.avg_cps
-
-            .span6
-              .box
-                .box-header
-                  %span.title QoS
-                .box-content.padded
-                  %dl
-                    %dt Average jitter
-                    %dd= @test_run.avg_jitter
-                    %dt Max jitter
-                    %dd= @test_run.max_jitter
-                    %dt Average packet loss
-                    %dd= @test_run.avg_packet_loss
-                    %dt Max packet loss
-                    %dd= @test_run.max_packet_loss
+        - when /complete/
           .row-fluid
             .span12
               .box
@@ -176,19 +123,78 @@
                 .box-content.padded
                   %pre{style: 'font-size: 0.8em'}
                     = @test_run.summary_report
+      .row-fluid#graphs
+        .span12
+          .box
+            .box-header
+              %span.title Test run results
+            .box-content.padded
+              %h2 Total Calls
+              #callsChart{style: 'height: 250px'}
+                %svg
+              %h3 Calls Per Second / Concurrent Calls
+              #callRateChart{style: 'height: 250px'}
+                %svg
+              %h2 Jitter
+              #jitterChart{style: 'height: 250px'}
+                %svg
+              %h2 Packet Loss
+              #packetLossChart{style: 'height: 250px'}
+                %svg
+              %h2 Target Resources
+              #targetResourcesChart{style: 'height: 250px'}
+                %svg
+      .row-fluid#stats
+        .span6
+          .box
+            .box-header
+              %span.title Performance
+            .box-content.padded
+              %dl
+                %dt Total calls
+                %dd= @test_run.total_calls
+                %dt Successful calls
+                %dd= @test_run.successful_calls
+                %dt Failed calls
+                %dd= @test_run.failed_calls
+                %dt Average call duration
+                %dd= @test_run.avg_call_duration
+                %dt Average CPS
+                %dd= @test_run.avg_cps
+
+        .span6
+          .box
+            .box-header
+              %span.title QoS
+            .box-content.padded
+              %dl
+                %dt Average jitter
+                %dd= @test_run.avg_jitter
+                %dt Max jitter
+                %dd= @test_run.max_jitter
+                %dt Average packet loss
+                %dd= @test_run.avg_packet_loss
+                %dt Max packet loss
+                %dd= @test_run.max_packet_loss
 
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
-    $(function(){
-      $('#countdown-secs').countdown({
-        date: +(new Date) + 10000,
+    function countdown() {
+      console.log("Now: " + Date.now())
+      window.testRunCD = $.countdown('#countdown-secs', {
+        date: +(Date.now()) + 10000,
         render: function(data) {
           $(this.el).text(data.sec + "s");
         },
         onEnd: function() {
-          location.reload(true);
+          refreshTestRun(#{@test_run.id});
         }
       });
+    }
+    $(function() {
+      $('#graphs').hide();
+      $('#stats').hide();
+      countdown();
     });
 - if @test_run.state =~ /complete/
   :javascript
