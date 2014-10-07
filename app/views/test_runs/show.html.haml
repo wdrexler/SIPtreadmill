@@ -27,12 +27,14 @@
 
             %dt Sender scenario:
             %dd= link_to(@test_run.scenario.name, @test_run.scenario) if @test_run.scenario
+            %dd= "Port: #{@test_run.local_ports_array[0]}"
 
             %dt Registration scenario:
             %dd= link_to(@test_run.registration_scenario.name, @test_run.registration_scenario) if @test_run.registration_scenario
 
             %dt Receiver scenario:
             %dd= link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
+            %dd= "Port: #{@test_run.local_ports_array[1]}"
 
             %dt Profile:
             %dd= link_to @test_run.profile_name, @test_run.profile
