@@ -25,21 +25,18 @@
               %dt Owned by
               %dd= @test_run.user.full_name if @test_run.user
 
-            %dt Scenarios:
-            - if @test_run.scenario
-              %dd
-                Sender:
-                = link_to(@test_run.scenario.name, @test_run.scenario) if @test_run.scenario
+            %dt Sender scenario:
+            %dd= link_to(@test_run.scenario.name, @test_run.scenario) if @test_run.scenario
+            %dd= "Port: #{@test_run.local_ports_array[0]}"
 
             - if @test_run.registration_scenario
               %dd
                 Registration:
                 = link_to(@test_run.registration_scenario.name, @test_run.registration_scenario) if @test_run.registration_scenario
 
-            - if @test_run.receiver_scenario
-              %dd
-                Receiver:
-                = link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
+            %dt Receiver scenario:
+            %dd= link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
+            %dd= "Port: #{@test_run.local_ports_array[1]}"
 
             %dt
               Profile:

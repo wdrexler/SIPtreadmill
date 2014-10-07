@@ -108,7 +108,7 @@ class TestRun < ActiveRecord::Base
   end
 
   def local_ports_array=(new_local_ports)
-    raise ArgumentError "Must set local ports to an array value" unless new_local_ports.kind_of(Array)
+    raise ArgumentError "Must set local ports to an array value" unless new_local_ports.kind_of?(Array)
     raise ArgumentError "Local ports must be unique" unless new_local_ports.uniq == new_local_ports
     self.local_ports = new_local_ports.to_json
   end

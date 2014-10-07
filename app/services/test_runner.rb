@@ -53,7 +53,7 @@ class TestRunner
       max_concurrent: 1,
       destination: @test_run.target.address,
       source: TestRunner::BIND_IP,
-      source_port: 8838,
+      source_port: @test_run.local_ports_array[1],
       transport_mode: @test_run.profile.transport_type.to_s,
     }
     options[:scenario_variables] = write_csv_data @test_run.registration_scenario if @test_run.registration_scenario.csv_data.present?
@@ -67,7 +67,7 @@ class TestRunner
 
     options = {
       source: TestRunner::BIND_IP,
-      source_port: 8838,
+      source_port: @test_run.local_ports_array[1],
       transport_mode: @test_run.profile.transport_type.to_s
     }
 
@@ -90,6 +90,7 @@ class TestRunner
     opts = {
       source: TestRunner::BIND_IP,
       destination: @test_run.target.address,
+      source_port: @test_run.local_ports_array[0],
       number_of_calls: @test_run.profile.max_calls,
       calls_per_second: @test_run.profile.calls_per_second,
       max_concurrent: @test_run.profile.max_concurrent,
