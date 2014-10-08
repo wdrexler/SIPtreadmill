@@ -103,7 +103,13 @@ class TestRun < ActiveRecord::Base
   def local_ports_array=(new_local_ports)
     raise ArgumentError, "Must set local ports to an array value" unless new_local_ports.kind_of?(Array)
     raise ArgumentError, "Local ports must be unique" unless new_local_ports.uniq == new_local_ports
-    self.local_ports = new_local_ports.map{|e| e.to_i > 1024 ? e.to_i : Kernel.rand(10000...65535)}.to_json
+    self.local_ports = new_local_ports.map do |e|
+      if e.to_i > 1024
+        e.to_i
+      else
+        Kernel.rand(10000...65535)
+      end
+    end.to_json
   end
 
   def total_calls_json
