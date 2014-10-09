@@ -11,6 +11,7 @@ class TestRunner
     @stopped = false
     @receiver_runner = nil
     @receiver_error = nil
+    @sipp_parser = nil
     @password = ssh_password
     @vmstat_buffer = []
     @csv_files = []
@@ -23,7 +24,6 @@ class TestRunner
     result = execute_runner
 
     unless @stopped
-      parse_sipp_stats result[:stats_data]
       parse_rtcp_data result[:rtcp_data]
       parse_system_stats @vmstat_buffer if has_stats_credentials?
     end
@@ -116,7 +116,14 @@ class TestRunner
     end
 
     @runner = Runner.new runner_name, runner_scenario, opts
-    @runner.run
+    Thread.new do
+      @sipp_parser = SippParser.new @runner.stats_file, @test_run
+      @sipp_parser.run
+    end
+    result = @runner.run
+    @sipp_parser.stop
+    raise @sipp_parser.error if @sipp_parser.error
+    result
   end
 
   def path(suffix = '')
@@ -141,11 +148,6 @@ class TestRunner
 
   def runner_name
     @test_run.name.downcase.gsub(/\W/, '')
-  end
-
-  def parse_sipp_stats(stats)
-    return unless stats
-    SippParser.new(stats, @test_run).run
   end
 
   def parse_rtcp_data(data)
