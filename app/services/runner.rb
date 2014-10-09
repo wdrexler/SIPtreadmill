@@ -3,7 +3,7 @@ require 'json'
 require 'tempfile'
 
 class Runner
-  attr_accessor :sipp_file, :rtcp_data
+  attr_accessor :sipp_file, :rtcp_data, :stats_file
   def initialize(name, scenario, opts = {})
     @name = name
     @scenario = scenario

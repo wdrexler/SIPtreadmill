@@ -171,21 +171,13 @@
 
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
-    function countdown() {
-      window.testRunCD = $.countdown('#countdown-secs', {
-        date: +(Date.now()) + 10000,
-        render: function(data) {
-          $(this.el).text(data.sec + "s");
-        },
-        onEnd: function() {
-          refreshTestRun(#{@test_run.id});
-        }
-      });
+    function setTestRunInterval() {
+       window.testRunInterval = window.setInterval(refreshTestRun, 1000, #{@test_run.id});
     }
     $(function() {
       $('#graphs').hide();
       $('#stats').hide();
-      countdown();
+      setTestRunInterval();
     });
 - if @test_run.state == 'pending'
   :javascript

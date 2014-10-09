@@ -28,9 +28,11 @@ var displayTestRunResults = function(data) {
 var processTestRunResults = function(data) {
   $('#statusLabel > span').switchClass($('#statusLabel > span').attr('class').split(' ')[1], data.status_class);
   $('#statusLabel > span').html(data.status_display);
+  if(data.status_display === "Complete" || data.status_display === "Errors" || data.status_display === "Warnings") {
+    window.clearInterval(window.testRunInterval);
+  }
   if(data.results == undefined || data.results == null) {
-    window.testRunCD.update(+(new Date) + 10000);
-    window.testRunCD.start();
+    return;
   } else {
     displayTestRunResults(data);
   }

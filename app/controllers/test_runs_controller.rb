@@ -33,14 +33,10 @@ class TestRunsController < ApplicationController
       format.json do
         result = { status: @test_run.state }
         result[:status_class], result[:status_display] = @test_run.html_status
-        if @test_run.state =~ /complete/
-          result[:results] = { total_calls: @test_run.total_calls_json, jitter: @test_run.jitter_json,
+        result[:results] = { total_calls: @test_run.total_calls_json, jitter: @test_run.jitter_json,
                                packet_loss: @test_run.packet_loss_json, call_rate: @test_run.call_rate_json,
                                target_resources: @test_run.target_resources_json }
-          result[:stats] = @test_run.stats_json
-        else
-          result[:results] = nil
-        end
+        result[:stats] = @test_run.stats_json
         render json: result
       end
     end
