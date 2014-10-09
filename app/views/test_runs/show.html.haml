@@ -114,15 +114,7 @@
                 %span#countdown-secs
               %p
                 = button_to "stop", stop_test_run_path(@test_run), {class: "btn btn-danger"}
-        - when /complete/
-          .row-fluid
-            .span12
-              .box
-                .box-header
-                  %span.title Test run summary
-                .box-content.padded
-                  %pre{style: 'font-size: 0.8em'}
-                    = @test_run.summary_report
+
       .row-fluid#graphs
         .span12
           .box
@@ -177,6 +169,15 @@
                 %dt Max packet loss
                 %dd#maxPktLoss= @test_run.max_packet_loss
 
+      .row-fluid#summary
+        .span12
+          .box
+            .box-header
+              %span.title Test run summary
+            .box-content.padded
+              %pre{style: 'font-size: 0.8em'}
+                = @test_run.summary_report
+
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
     function setTestRunInterval() {
@@ -185,6 +186,7 @@
     $(function() {
       $('#graphs').hide();
       $('#stats').hide();
+      $('#summary').hide();
       setTestRunInterval();
     });
 - if @test_run.state == 'pending'
@@ -192,6 +194,7 @@
     $(function() {
       $('#graphs').hide();
       $('#stats').hide();
+      $('#summary').hide();
     });
 - if @test_run.state =~ /complete/
   :javascript
