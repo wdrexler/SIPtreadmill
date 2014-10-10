@@ -99,9 +99,7 @@
             .box-header
               %span.title Job is queued, #{@stats.enqueued} jobs in the queue
             .box-content.padded
-              %p
-                = button_to "Cancel", cancel_test_run_path(@test_run), {class: "btn btn-danger"}}
-
+              %p= button_to "Cancel", cancel_test_run_path(@test_run), {class: "btn btn-danger"}
       .row-fluid#graphs
         .span12
           .box
@@ -140,7 +138,6 @@
                 %dd#avgCallDuration= @test_run.avg_call_duration
                 %dt Average CPS
                 %dd#avgCPS= @test_run.avg_cps
-
         .span6
           .box
             .box-header
@@ -155,7 +152,6 @@
                 %dd#avgPktLoss= @test_run.avg_packet_loss
                 %dt Max packet loss
                 %dd#maxPktLoss= @test_run.max_packet_loss
-
       .row-fluid#summary
         .span12
           .box
@@ -164,7 +160,6 @@
             .box-content.padded
               %pre{style: 'font-size: 0.8em'}
                 = @test_run.summary_report
-
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
     function setTestRunInterval() {
