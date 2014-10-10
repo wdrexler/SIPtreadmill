@@ -38,9 +38,10 @@ class SippParser
   end
 
   def stop
-    populate_data_buffer
-    @data = @data_buffer.slice! /(.+$)/
-    parse_data "#{@headers}#{@data}"
+    until @stats_file.eof?
+      @data_buffer << @stats_file.read_nonblock(128)
+    end
+    parse_data "#{@headers}#{@data_buffer}"
     @running = false
   end
 
