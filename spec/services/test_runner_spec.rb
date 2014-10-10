@@ -10,6 +10,7 @@ describe TestRunner do
   let(:options) do
     {
       source: TestRunner::BIND_IP,
+      source_port: 8836,
       number_of_calls: test_run.profile.max_calls,
       calls_per_second: test_run.profile.calls_per_second,
       max_concurrent: test_run.profile.max_concurrent,
@@ -35,7 +36,7 @@ describe TestRunner do
     let(:receiver_options) do
       {
         source: TestRunner::BIND_IP,
-        source_port: 8838,
+        source_port: 8837,
         transport_mode: test_run.profile.transport_type.to_s
       }
     end
@@ -83,7 +84,7 @@ describe TestRunner do
         Runner.should_receive(:new).with("myfirsttest_run", scenario, options).ordered.and_return(mock_runner)
         mock_runner.should_receive(:run).ordered
         receiver_runner.should_receive :stop
-        subject.run 
+        subject.run
       end
     end
 

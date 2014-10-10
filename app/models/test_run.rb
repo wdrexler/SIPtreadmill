@@ -5,6 +5,7 @@ class TestRun < ActiveRecord::Base
   attr_accessible :target, :target_id
   attr_accessible :receiver_scenario, :receiver_scenario_id
   attr_accessible :registration_scenario, :registration_scenario_id
+  attr_accessible :local_ports
   belongs_to :profile
   belongs_to :scenario
   belongs_to :receiver_scenario, class_name: "Scenario"
@@ -91,6 +92,24 @@ class TestRun < ActiveRecord::Base
 
   def avg_cps
     self.sipp_data.average 'cps'
+  end
+
+  def local_ports_array
+    JSON.parse self.local_ports
+  rescue => e
+    []
+  end
+
+  def local_ports_array=(new_local_ports)
+    raise ArgumentError, "Must set local ports to an array value" unless new_local_ports.kind_of?(Array)
+    raise ArgumentError, "Local ports must be unique" unless new_local_ports.uniq == new_local_ports
+    self.local_ports = new_local_ports.map do |e|
+      if e.to_i > 1024
+        e.to_i
+      else
+        Kernel.rand(10000...65535)
+      end
+    end.to_json
   end
 
   def total_calls_json

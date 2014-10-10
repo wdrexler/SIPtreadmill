@@ -82,6 +82,39 @@ describe TestRun do
       end
     end
 
+    context "#local_ports_array" do
+      it 'returns the array represented by the local_ports string' do
+        subject.local_ports = "[12345, 67890]"
+        subject.local_ports_array.should == [12345, 67890]
+      end
+    end
+
+    context "#local_ports_array=" do
+      it 'saves valid arrays passed to it' do
+        subject.local_ports_array = [12345, 15432]
+        subject.local_ports.should == "[12345,15432]"
+      end
+
+      it 'generates random numbers in place of invalid input' do
+        Kernel.should_receive(:rand).twice.and_return 12345, 15432
+        subject.local_ports_array = ['I am so invalid', 100]
+        subject.local_ports.should == "[12345,15432]"
+      end
+
+      it 'casts stringified integers to normal integers' do
+        subject.local_ports_array = ['12345', '15432']
+        subject.local_ports_array.should == [12345, 15432]
+      end
+
+      it 'raises an error when an array is not passed' do
+        expect { subject.local_ports_array = { this: 'is', a: 'hash' } }.to raise_error ArgumentError
+      end
+
+      it 'raises an error when the array elements are not unique' do
+        expect { subject.local_ports_array = [12345, 12345] }.to raise_error ArgumentError
+      end
+    end
+
     context "with a job not pending" do
       it 'does not enqueue the job twice' do
         subject.state = 'queued'
