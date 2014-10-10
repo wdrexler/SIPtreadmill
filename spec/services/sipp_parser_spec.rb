@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'stringio'
 
 describe SippParser do
 
@@ -13,12 +14,20 @@ StartTime;LastResetTime;CurrentTime;ElapsedTime(P);ElapsedTime(C);TargetRate;Cal
     DATA
   end
 
+  let(:csv_data_handle) { StringIO.new csv_data, 'r' }
+  let(:mock_file_handler) { double :file_handler, path: '/srv/treadmill/current/log/stats.csv' }
+
   let(:test_run) { FactoryGirl.create :test_run }
 
-  subject { SippParser.new(csv_data, test_run) }
+  before { File.stub(:new).and_return csv_data_handle }
+  subject { SippParser.new mock_file_handler, test_run }
 
   it "parses the file and adds results to test run" do
-    subject.run
+    Thread.new do
+      subject.run
+    end
+    sleep 1
+    subject.stop
     test_run.reload
 
     test_run.sipp_data.size.should == 5
