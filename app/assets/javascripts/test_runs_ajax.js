@@ -7,15 +7,15 @@ var drawGraphs = function(data) {
 }
 
 var displayStats = function(data) {
-  $('#totalCalls').append(data.stats.total_calls);
-  $('#successfulCalls').append(data.stats.successful_calls);
-  $('#failedCalls').append(data.stats.failed_calls);
-  $('#avgCallDuration').append(data.stats.avg_call_duration);
-  $('#avgCPS').append(data.stats.avg_cps);
-  $('#avgJitter').append(data.stats.avg_jitter);
-  $('#maxJitter').append(data.stats.max_jitter);
-  $('#avgPktLoss').append(data.stats.avg_packet_loss);
-  $('#maxPktLoss').append(data.stats.max_packet_loss);
+  $('#totalCalls').html("").append(data.stats.total_calls);
+  $('#successfulCalls').html("").append(data.stats.successful_calls);
+  $('#failedCalls').html("").append(data.stats.failed_calls);
+  $('#avgCallDuration').html("").append(data.stats.avg_call_duration);
+  $('#avgCPS').html("").append(data.stats.avg_cps);
+  $('#avgJitter').html("").append(data.stats.avg_jitter);
+  $('#maxJitter').html("").append(data.stats.max_jitter);
+  $('#avgPktLoss').html("").append(data.stats.avg_packet_loss);
+  $('#maxPktLoss').html("").append(data.stats.max_packet_loss);
 }
 var displayTestRunResults = function(data) {
   $("#inProgress").hide();
