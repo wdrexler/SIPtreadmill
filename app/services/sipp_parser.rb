@@ -64,7 +64,6 @@ class SippParser
           SippData.create data
         end
         @data = ''
-        sleep 1
       rescue EOFError
         sleep 1
       rescue => e
