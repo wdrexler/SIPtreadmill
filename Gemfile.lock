@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: git://github.com/mojolingo/sippy_cup.git
-  revision: de63c064eb8bbc819d58dd5709241021415d987d
+  revision: 25b853207210cc8b6f0c71392ffffd849ec9df73
   branch: develop
   specs:
     sippy_cup (0.4.1)
