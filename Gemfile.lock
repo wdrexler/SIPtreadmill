@@ -21,8 +21,8 @@ GIT
       omniauth-oauth2 (~> 1.1)
 
 GIT
-  remote: git://github.com/mojolingo/sippy_cup.git
-  revision: 25b853207210cc8b6f0c71392ffffd849ec9df73
+  remote: git://github.com/wdrexler/sippy_cup.git
+  revision: cbd8758a045f51d861ee7f32f63c0525085b312d
   branch: develop
   specs:
     sippy_cup (0.4.1)
