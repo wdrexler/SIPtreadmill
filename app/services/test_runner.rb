@@ -95,7 +95,9 @@ class TestRunner
       calls_per_second: @test_run.profile.calls_per_second,
       max_concurrent: @test_run.profile.max_concurrent,
       transport_mode: @test_run.profile.transport_type.to_s,
-      vmstat_buffer: @vmstat_buffer
+      vmstat_buffer: @vmstat_buffer,
+      use_time: @test_run.profile.use_time,
+      time_limit: @test_run.profile.duration
     }
 
     opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?

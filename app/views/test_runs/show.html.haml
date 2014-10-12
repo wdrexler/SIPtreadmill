@@ -38,7 +38,10 @@
 
             %dt Profile:
             %dd= link_to @test_run.profile_name, @test_run.profile
-            %dd= "Max Calls: #{@test_run.profile.max_calls}"
+            - if @test_run.profile.use_time
+              %dd= "Duration: #{@test_run.profile.duration}"
+            - else
+              %dd= "Max Calls: #{@test_run.profile.max_calls}"
             %dd= "Max Concurrent: #{@test_run.profile.max_concurrent}"
             %dd= "CPS: #{@test_run.profile.calls_per_second}"
             %dd= "Transport type: #{@test_run.profile.transport_type.text}"
