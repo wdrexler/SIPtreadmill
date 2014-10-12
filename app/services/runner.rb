@@ -38,6 +38,8 @@ class Runner
     begin
       @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false
       @sippy_runner.run
+    rescue SippyCup::SippGenericError
+      #SippGenericError gets raised on SIGUSR1, ignore it for now
     ensure
       @rtcp_listener.stop
       @stats_collector.stop if @stats_collector
