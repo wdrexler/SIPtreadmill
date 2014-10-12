@@ -76,6 +76,8 @@ class TestRunner
     scenario = @test_run.receiver_scenario.to_sippycup_scenario options
     @receiver_runner = SippyCup::Runner.new scenario, full_sipp_output: false, async: true
     @receiver_runner.run
+  rescue SippyCup::SippGenericError
+    # Prevent SIPp from giving us a false negative due to SIGUSR1
   end
 
   def halt_receiver_scenario
