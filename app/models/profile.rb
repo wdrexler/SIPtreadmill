@@ -27,6 +27,8 @@ class Profile < ActiveRecord::Base
     new_profile_opts = { name: "#{self.name} (Copy)",
                          calls_per_second: self.calls_per_second,
                          max_calls: self.max_calls,
+                         use_time: self.use_time,
+                         duration: self.duration,
                          max_concurrent: self.max_concurrent,
                          transport_type: self.transport_type
                        }
