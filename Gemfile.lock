@@ -1,3 +1,14 @@
+GIT
+  remote: git://github.com/wdrexler/sippy_cup.git
+  revision: cbd8758a045f51d861ee7f32f63c0525085b312d
+  branch: develop
+  specs:
+    sippy_cup (0.4.1)
+      activesupport (> 3.0)
+      nokogiri (~> 1.6.0)
+      packetfu
+      psych (~> 2.0.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
