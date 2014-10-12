@@ -147,7 +147,10 @@ jQuery ->
               transport_type = "TCP Multi"
             else
               transport_type = "None given."
-          html = "<h6>Max calls:</h6><p>&nbsp;" + data.max_calls + "</p><br/><h6>Calls per second:</h6><p>&nbsp;" + data.calls_per_second + "</p><br/><h6>Max concurrent:</h6><p>&nbsp;" + data.max_concurrent + "</p><br/><h6>Transport type:</h6><p>&nbsp;" + transport_type
+          if data.use_time
+            html = "<h6>Duration:</h6><p>&nbsp;" + data.duration + " seconds</p><br/><h6>Calls per second:</h6><p>&nbsp;" + data.calls_per_second + "</p><br/><h6>Max concurrent:</h6><p>&nbsp;" + data.max_concurrent + "</p><br/><h6>Transport type:</h6><p>&nbsp;" + transport_type
+          else
+            html = "<h6>Max calls:</h6><p>&nbsp;" + data.max_calls + "</p><br/><h6>Calls per second:</h6><p>&nbsp;" + data.calls_per_second + "</p><br/><h6>Max concurrent:</h6><p>&nbsp;" + data.max_concurrent + "</p><br/><h6>Transport type:</h6><p>&nbsp;" + transport_type
           $("#" + destination_id).html html
 
   showTarget = (target_id, destination_id) ->

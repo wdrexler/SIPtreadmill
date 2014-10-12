@@ -9,9 +9,36 @@
           Give your new profile a name so you can refer to it in the future.
     .row-fluid
       .span12
-        = f.input :max_calls
+        %label{ for: 'profile_use_time' }Use Duration instead of Max Calls
+        - if @profile.use_time
+          %input{ type: 'checkbox', id: 'profile_use_time', name: 'profile[use_time]', checked: 'checked' }
+        - else
+          %input{ type: 'checkbox', id: 'profile_use_time', name: 'profile[use_time]' }
+        %label#profile_max_calls_label{ for: 'profile_max_calls', style: "display: #{@profile.use_time ? "none" : "block" }" } Max Calls
+        %input{ id: 'profile_max_calls', name: 'profile[max_calls]', style: "display: #{@profile.use_time ? "none" : "block" }" }
+        .control-group#duration{style: "#{@profile.use_time ? "" : "display:none" }"}
+          %label{ for: 'profile_duration_hours' } Duration
+          %input{ id: 'profile_duration_hours', maxlength: '2', placeholder: 'HH', name: 'profile[duration][hours]', style: "display:inline; width:25px;" }
+          %span :
+          %input{ id: 'profile_duration_minutes', maxlength: '2', placeholder: 'MM', name: 'profile[duration][minutes]', style: "display:inline; width:25px;" }
+          %span :
+          %input{ id: 'profile_duration_seconds', maxlength: '2', placeholder: 'SS', name: 'profile[duration][seconds]', style: "display:inline; width:25px;" }
         = f.input :calls_per_second
         = f.input :max_concurrent
         = f.input :transport_type, collection: TransportType.select_options
   .form-actions
     = f.button :submit, class: 'btn-default'
+  :javascript
+    $(function() {
+      $('#profile_use_time').on('click', function(evt){
+        if(this.checked) {
+          $('#profile_max_calls').val('');
+          $('[id*=max_calls]').hide();
+          $('#duration').show();
+        } else {
+          $('[id*=profile_duration]').val('');
+          $('[id*=max_calls]').show();
+          $('#duration').hide();
+        }
+      });
+    });
