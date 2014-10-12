@@ -100,6 +100,8 @@ class TestRunner
       advertise_address: @test_run.advertise_address,
       from_user: @test_run.from_user,
       options: Psych.safe_load(@test_run.sipp_options),
+      use_time: @test_run.profile.use_time,
+      time_limit: @test_run.profile.duration
     }
 
     opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?

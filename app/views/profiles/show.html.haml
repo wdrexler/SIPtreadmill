@@ -17,8 +17,12 @@
           %dl
             %dt Name
             %dd= @profile.name
-            %dt Max calls
-            %dd= @profile.max_calls
+            - if @profile.use_time
+              %dt Duration
+              %dd= "#{@profile.duration} seconds"
+            - else
+              %dt Max calls
+              %dd= @profile.max_calls
             %dt Calls per second
             %dd= @profile.calls_per_second
             %dt Max concurrent
@@ -34,4 +38,6 @@
             - if current_user.admin_mode
               %hr
               %dt Owned by
-              %dd= @profile.user.full_name if @profile.user 
+              %dd= @profile.user.full_name if @profile.user
+            %dt Transport type
+            %dd= @profile.transport_type.text

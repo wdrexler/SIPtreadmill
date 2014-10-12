@@ -38,11 +38,14 @@
             %dd= link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
             %dd= "Port: #{@test_run.local_ports_array[1]}"
 
-            %dt
-              Profile:
-              = link_to @test_run.profile_name, @test_run.profile
-            %dd= "Max Calls: #{number_with_delimiter @test_run.profile.max_calls}"
-            %dd= "Max Concurrent: #{number_with_delimiter @test_run.profile.max_concurrent}"
+
+            %dt Profile:
+            %dd= link_to @test_run.profile_name, @test_run.profile
+            - if @test_run.profile.use_time
+              %dd= "Duration: #{@test_run.profile.duration}"
+            - else
+              %dd= "Max Calls: #{@test_run.profile.max_calls}"
+            %dd= "Max Concurrent: #{@test_run.profile.max_concurrent}"
             %dd= "CPS: #{@test_run.profile.calls_per_second}"
             - if @test_run.profile.calls_per_second_max
               %dd= "CPS Max: #{@test_run.profile.calls_per_second_max}"
