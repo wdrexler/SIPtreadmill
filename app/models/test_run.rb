@@ -54,6 +54,7 @@ class TestRun < ActiveRecord::Base
       to_user: self.to_user,
       advertise_address: self.advertise_address,
       sipp_options: self.sipp_options,
+      local_ports: self.local_ports
     )
     new_run.user = self.user
     new_run.receiver_scenario_id = self.receiver_scenario.id if self.receiver_scenario

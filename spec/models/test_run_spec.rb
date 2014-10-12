@@ -253,7 +253,8 @@ describe TestRun do
     it "should duplicate the test run" do
       test_run = FactoryGirl.create :test_run, user: FactoryGirl.build(:user), scenario: FactoryGirl.build(:scenario),
                       profile: FactoryGirl.build(:profile), target: FactoryGirl.build(:target), name: "TestRun",
-                      from_user: 'foobar', to_user: 'doodah', advertise_address: '127.0.0.1', sipp_options: 'p: "101"'
+                      from_user: 'foobar', to_user: 'doodah', advertise_address: '127.0.0.1', sipp_options: 'p: "101"',
+                      local_ports: "[12345,54321]"
       new_tr = test_run.duplicate
       new_tr.user.should == test_run.user
       new_tr.scenario.should == test_run.scenario
@@ -264,6 +265,7 @@ describe TestRun do
       new_tr.to_user.should == 'doodah'
       new_tr.advertise_address.should == '127.0.0.1'
       new_tr.sipp_options.should == 'p: "101"'
+      new_tr.local_ports.should == "[12345,54321]"
     end
 
     it "should increment the number correctly" do
