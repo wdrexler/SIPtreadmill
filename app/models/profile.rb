@@ -30,7 +30,8 @@ class Profile < ActiveRecord::Base
       max_calls: self.max_calls,
       max_concurrent: self.max_concurrent,
       transport_type: self.transport_type,
-      user: requesting_user
+      user: requesting_user,
+      duration: self.duration
     )
     new_profile.save ? new_profile : nil
   end
