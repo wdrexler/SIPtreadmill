@@ -45,7 +45,7 @@ class TestRun < ActiveRecord::Base
 
   def duplicate
     new_run = TestRun.new(scenario_id: self.scenario.id, profile_id: self.profile.id,
-                               target_id: self.target.id, description: self.description)
+                               target_id: self.target.id, description: self.description, local_ports: self.local_ports)
     new_run.user = self.user
     new_run.receiver_scenario_id = self.receiver_scenario.id if self.receiver_scenario
     if match = self.name.match(/Retry (\d+)$/)
