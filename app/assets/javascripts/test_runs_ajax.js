@@ -28,17 +28,9 @@ var displayTestRunResults = function(data) {
 var processTestRunResults = function(data) {
   $('#statusLabel > span').switchClass($('#statusLabel > span').attr('class').split(' ')[1], data.status_class);
   $('#statusLabel > span').html(data.status_display);
-<<<<<<< HEAD
-  if(data.status_display === "Complete" || data.status_display === "Errors" || data.status_display === "Warnings") {
-    window.clearInterval(window.testRunInterval);
-  }
-  if(data.results == undefined || data.results == null) {
-    return;
-=======
   if(data.results == undefined || data.results == null) {
     window.testRunCD.update(+(new Date) + 10000);
     window.testRunCD.start();
->>>>>>> add UI for Rampping (up/down)
   } else {
     displayTestRunResults(data);
   }
@@ -98,4 +90,28 @@ var decreaseCallRate = function(test_run_id) {
     }
   }
 }
+<<<<<<< HEAD
 >>>>>>> add UI for Rampping (up/down)
+=======
+
+var submitCallRate = function(test_run_id) {
+  if(test_run_id !== null) {
+    var element = document.getElementById("tfield_call_rate");
+    var current_call_rate = +(element.value) || 0;
+    if(current_call_rate > 0){
+      $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/test_runs/" + test_run_id + "/change_call_rate",
+        data: { change: 0, current_call_rate: current_call_rate },
+        success: function(data) {
+          element.value = current_call_rate;
+        },
+        error: function() {
+          //alert("failed to increase call rate!!")
+        }
+      })
+    }
+  }
+}
+>>>>>>> add a submit button for call rate

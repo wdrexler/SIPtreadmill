@@ -94,6 +94,8 @@
               %input#btn_decrease_call_rate{:class => "btn btn-success", :type => "button", :value => "Decrease"}
               %input#tfield_call_rate{:type => "text", :name => "call_rate", :maxlength => "6", :size => "6", :value => "100", :width => "0"}
               %input#btn_increase_call_rate{:class => "btn btn-success", :type => "button", :value => "Increase"}
+            %br
+            %input#btn_submit_call_rate{:class => "btn btn-success", :type => "button", :value => "Submit"}
 
     .span9
       - case @test_run.state
@@ -234,6 +236,10 @@
       $('#btn_decrease_call_rate').on('mouseup', function () {
         clearTimeout(pressTimer);
         clearInterval(interval);
+      });
+
+      $('#btn_submit_call_rate').on('click', function () {
+        submitCallRate(#{@test_run.id});
       });
     });
 
