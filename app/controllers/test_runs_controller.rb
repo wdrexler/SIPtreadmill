@@ -153,6 +153,14 @@ class TestRunsController < ApplicationController
     end
   end
 
+  # POST /test_runs/1/change_call_rate
+  def change_call_rate
+    @test_run = TestRun.accessible_by(current_ability).find(params[:id])
+      if @test_run.state == 'running' || @test_run.state =~ /complete/
+        render :json => {:call_rate => @test_run.call_rate_json}
+      end
+  end
+
   def cancel
     @test_run = TestRun.accessible_by(current_ability).find(params[:id])
     if @test_run.cancel

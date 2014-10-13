@@ -7,6 +7,7 @@ SIPTreadmill::Application.routes.draw do
       post 'stop'
       get  'copy'
       get  'results'
+      post 'change_call_rate'
     end
   end
   resources :targets
