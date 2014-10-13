@@ -13,7 +13,7 @@ class TestRunWorker
     @test_runner = TestRunner.new test_run, jid, password
 
     @listener_running = true
-    stop_signal_listener
+    signal_listener
 
     @test_runner.run
 
