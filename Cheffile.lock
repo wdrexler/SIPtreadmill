@@ -33,20 +33,12 @@ SITE
       yum (>= 3.0)
 
 GIT
-  remote: git://github.com/fnichol/chef-rvm.git
+  remote: https://github.com/fnichol/chef-rvm.git
   ref: master
   sha: ade745350b6239b89fd0dd7c809eca518505e580
   specs:
     rvm (0.10.1)
       chef_gem (>= 0.0.0)
-
-GIT
-  remote: git@github.com:phlipper/chef-redis.git
-  ref: master
-  sha: 9803b2480f39989b5f88e1bf71e5c41d57c82d6b
-  specs:
-    redis (0.5.5)
-      apt (>= 0.0.0)
 
 GIT
   remote: https://github.com/mojolingo/freeswitch-cookbook.git
@@ -56,6 +48,14 @@ GIT
     freeswitch (0.6.4)
       apt (~> 2.2)
       yum (~> 3.1)
+
+GIT
+  remote: https://github.com/phlipper/chef-redis.git
+  ref: master
+  sha: 9803b2480f39989b5f88e1bf71e5c41d57c82d6b
+  specs:
+    redis (0.5.5)
+      apt (>= 0.0.0)
 
 PATH
   remote: sipp

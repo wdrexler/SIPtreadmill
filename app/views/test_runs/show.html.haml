@@ -68,6 +68,16 @@
               %dt Error Message
               %dd= @test_run.error_message
 
+    - if @test_run.state == 'running'
+      .span4
+        .box
+          .box-header
+            %span.title Ramper
+            %div{:id => "div_call_rate", :style => "float:left;  height:100%; width:100%"}
+              %input#btn_decrease_call_rate{:class => "btn btn-success", :type => "button", :value => "Decrease"}
+              %input#tfield_call_rate{:type => "text", :name => "call_rate", :maxlength => "6", :size => "6", :value => "100", :width => "0"}
+              %input#btn_increase_call_rate{:class => "btn btn-success", :type => "button", :value => "Increase"}
+
     .span9
       - case @test_run.state
         - when 'pending'
@@ -155,9 +165,13 @@
                     %dt Max packet loss
                     %dd= @test_run.max_packet_loss
 
-- if @test_run.state == 'queued' || @test_run.state == 'running'
+- if @test_run.state == 'queued' || @test_run.state == 'running' || @test_run.state =~ /complete/
   :javascript
     $(function(){
+
+      var pressTimer;
+      var interval;
+
       $('#countdown-secs').countdown({
         date: +(new Date) + 10000,
         render: function(data) {
@@ -167,7 +181,48 @@
           location.reload(true);
         }
       });
+
+      $('#btn_increase_call_rate').on('click', function () {
+        if(longpress) { // if detect hold, stop onclick function
+          return false;
+        };
+        increaseCallRate(#{@test_run.id});
+      });
+
+      $('#btn_increase_call_rate').on('mousedown', function () {
+        longpress = false;
+        pressTimer = window.setTimeout(function(){
+          longpress = true;
+          interval = setInterval(function(){increaseCallRate(#{@test_run.id})}, 500);
+        },500);
+      });
+
+      $('#btn_increase_call_rate').on('mouseup', function () {
+        clearTimeout(pressTimer);
+        clearInterval(interval);
+      });
+
+      $('#btn_decrease_call_rate').on('click', function () {
+        if(longpress) { // if detect hold, stop onclick function
+          return false;
+        };
+        decreaseCallRate(#{@test_run.id});
+      });
+
+      $('#btn_decrease_call_rate').on('mousedown', function () {
+        longpress = false;
+        pressTimer = window.setTimeout(function(){
+          longpress = true;
+          interval = setInterval(function(){decreaseCallRate(#{@test_run.id})}, 500);
+        },500);
+      });
+
+      $('#btn_decrease_call_rate').on('mouseup', function () {
+        clearTimeout(pressTimer);
+        clearInterval(interval);
+      });
     });
+
 - if @test_run.state =~ /complete/
   :javascript
     $(function() {
