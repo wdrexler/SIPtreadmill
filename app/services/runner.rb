@@ -17,6 +17,8 @@ class Runner
 
     @sipp_file = nil
     @rtcp_data = nil
+    @result = nil
+    @target_cps = @opts[:calls_per_second]
   rescue
     clean_up_handlers
     raise
@@ -29,8 +31,21 @@ class Runner
     run_rtcp_listener
 
     begin
-      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false
+      @result = nil
+      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false, async: true
       @sippy_runner.run
+      Thread.new do
+        begin
+          @result = @sippy_runner.wait
+        rescue => e
+          @error = e
+        end
+      end
+      until @result
+        @sippy_runner.set_cps(@target_cps)
+        sleep 1
+      end
+      raise @error if @error
     ensure
       @rtcp_listener.stop
       @stats_collector.stop if @stats_collector
@@ -44,6 +59,10 @@ class Runner
     { stats_data: stats_data, rtcp_data: rtcp_data }
   ensure
     clean_up_handlers
+  end
+
+  def set_cps(target_cps)
+    @target_cps = target_cps
   end
 
   def stop
