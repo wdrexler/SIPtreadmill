@@ -25,6 +25,8 @@ class Runner
     @sipp_file = nil
     @rtcp_data = nil
     @ssh_error = nil
+    @result = nil
+    @target_cps = @opts[:calls_per_second]
   rescue
     clean_up_handlers
     raise
@@ -42,11 +44,27 @@ class Runner
     end
 
     begin
-      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false
+      @result = nil
+      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false, async: true
       @sippy_runner.run
+<<<<<<< HEAD
       check_ssh_errors
     rescue SippyCup::SippGenericError
       #SippGenericError gets raised on SIGUSR1, ignore it for now
+=======
+      Thread.new do
+        begin
+          @result = @sippy_runner.wait
+        rescue => e
+          @error = e
+        end
+      end
+      until @result
+        @sippy_runner.set_cps(@target_cps)
+        sleep 1
+      end
+      raise @error if @error
+>>>>>>> Add the worker part of call ramping
     ensure
       @rtcp_listener.stop
       @stats_collector.stop if @stats_collector
@@ -68,6 +86,10 @@ class Runner
       summary_report: summary_report,
       errors_report_file: @errors_report_file
     }
+  end
+
+  def set_cps(target_cps)
+    @target_cps = target_cps
   end
 
   def stop

@@ -37,6 +37,10 @@ class TestRunner
     close_csv_files
   end
 
+  def set_cps(target_cps)
+    @runner.set_cps target_cps
+  end
+
   def stop
     @stopped = true
     @runner.stop
