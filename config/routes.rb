@@ -7,6 +7,7 @@ SIPTreadmill::Application.routes.draw do
       post 'stop'
       get  'copy'
       post 'change_call_rate'
+      get  'results'
     end
   end
   resources :targets
@@ -31,6 +32,10 @@ SIPTreadmill::Application.routes.draw do
   end
 
   devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" }
+
+  devise_scope :user do
+    delete "logout" => "devise/sessions#destroy", :as => :destroy_user_session
+  end
 
   root to: "home#index"
 end

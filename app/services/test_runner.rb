@@ -1,7 +1,6 @@
 require 'tempfile'
 
 class TestRunner
-  SIPPYCUP_TARGET_PORT = "12345"
   BIND_IP = ENV['TEST_RUN_BIND_IP']
 
   attr_accessor :stopped
@@ -12,6 +11,7 @@ class TestRunner
     @stopped = false
     @receiver_runner = nil
     @receiver_error = nil
+    @sipp_parser = nil
     @password = ssh_password
     @vmstat_buffer = []
     @csv_files = []
@@ -24,10 +24,14 @@ class TestRunner
     result = execute_runner
 
     unless @stopped
-      parse_sipp_stats result[:stats_data]
       parse_rtcp_data result[:rtcp_data]
       parse_system_stats @vmstat_buffer if has_stats_credentials?
     end
+
+    @test_run.summary_report = result[:summary_report]
+    @test_run.errors_report_file = result[:errors_report_file]
+    @test_run.stats_file = result[:stats_file]
+    @test_run.save!
   ensure
     halt_receiver_scenario
     close_csv_files
@@ -53,7 +57,7 @@ class TestRunner
       max_concurrent: 1,
       destination: @test_run.target.address,
       source: TestRunner::BIND_IP,
-      source_port: 8837,
+      source_port: @test_run.local_ports_array[1],
       transport_mode: @test_run.profile.transport_type.to_s,
     }
     options[:scenario_variables] = write_csv_data @test_run.registration_scenario if @test_run.registration_scenario.csv_data.present?
@@ -67,7 +71,7 @@ class TestRunner
 
     options = {
       source: TestRunner::BIND_IP,
-      source_port: 8838,
+      source_port: @test_run.local_ports_array[1],
       transport_mode: @test_run.profile.transport_type.to_s
     }
 
@@ -76,6 +80,8 @@ class TestRunner
     scenario = @test_run.receiver_scenario.to_sippycup_scenario options
     @receiver_runner = SippyCup::Runner.new scenario, full_sipp_output: false, async: true
     @receiver_runner.run
+  rescue SippyCup::SippGenericError
+    # Prevent SIPp from giving us a false negative due to SIGUSR1
   end
 
   def halt_receiver_scenario
@@ -90,11 +96,14 @@ class TestRunner
     opts = {
       source: TestRunner::BIND_IP,
       destination: @test_run.target.address,
+      source_port: @test_run.local_ports_array[0],
       number_of_calls: @test_run.profile.max_calls,
       calls_per_second: @test_run.profile.calls_per_second,
       max_concurrent: @test_run.profile.max_concurrent,
       transport_mode: @test_run.profile.transport_type.to_s,
-      vmstat_buffer: @vmstat_buffer
+      vmstat_buffer: @vmstat_buffer,
+      use_time: @test_run.profile.use_time,
+      time_limit: @test_run.profile.duration
     }
 
     opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?
@@ -105,7 +114,14 @@ class TestRunner
     end
 
     @runner = Runner.new runner_name, runner_scenario, opts
-    @runner.run
+    Thread.new do
+      @sipp_parser = SippParser.new @runner.stats_file, @test_run
+      @sipp_parser.run
+    end
+    result = @runner.run
+    @sipp_parser.stop
+    raise @sipp_parser.error if @sipp_parser.error
+    result
   end
 
   def path(suffix = '')
@@ -130,11 +146,6 @@ class TestRunner
 
   def runner_name
     @test_run.name.downcase.gsub(/\W/, '')
-  end
-
-  def parse_sipp_stats(stats)
-    return unless stats
-    SippParser.new(stats, @test_run).run
   end
 
   def parse_rtcp_data(data)

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140101171241) do
+ActiveRecord::Schema.define(:version => 20141010203518) do
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
@@ -22,6 +22,8 @@ ActiveRecord::Schema.define(:version => 20140101171241) do
     t.datetime "updated_at",       :null => false
     t.integer  "user_id"
     t.string   "transport_type"
+    t.integer  "duration"
+    t.boolean  "use_time"
   end
 
   create_table "rtcp_data", :force => true do |t|
@@ -98,6 +100,10 @@ ActiveRecord::Schema.define(:version => 20140101171241) do
     t.integer  "receiver_scenario_id"
     t.string   "error_name"
     t.text     "error_message"
+    t.text     "local_ports"
+    t.text     "summary_report"
+    t.string   "errors_report_file"
+    t.string   "stats_file"
   end
 
   create_table "users", :force => true do |t|
@@ -107,10 +113,10 @@ ActiveRecord::Schema.define(:version => 20140101171241) do
     t.string   "phone_number"
     t.string   "provider"
     t.string   "uid"
-    t.datetime "created_at",                      :null => false
-    t.datetime "updated_at",                      :null => false
-    t.boolean  "admin",        :default => false
-    t.boolean  "admin_mode",   :default => false
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
+    t.boolean  "admin",                :default => false
+    t.boolean  "admin_mode",           :default => false
     t.string   "name"
     t.string   "authentication_token"
   end

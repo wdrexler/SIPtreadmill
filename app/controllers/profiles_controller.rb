@@ -46,6 +46,11 @@ class ProfilesController < ApplicationController
   # POST /profiles
   # POST /profiles.json
   def create
+    duration = params[:profile].delete :duration
+    duration_seconds = hms_to_seconds duration if duration
+    if duration_seconds && duration_seconds > 0
+      params[:profile][:duration] = duration_seconds
+    end
     @profile = current_user.profiles.new(params[:profile])
 
     respond_to do |format|
@@ -63,6 +68,11 @@ class ProfilesController < ApplicationController
   # PUT /profiles/1.json
   def update
     @profile = Profile.accessible_by(current_ability).find(params[:id])
+    duration = params[:profile].delete :duration
+    duration_seconds = hms_to_seconds duration if duration
+    if duration_seconds && duration_seconds > 0
+      params[:profile][:duration] = duration_seconds
+    end
 
     respond_to do |format|
       if @profile.update_attributes(params[:profile])
@@ -95,5 +105,14 @@ class ProfilesController < ApplicationController
       format.html { redirect_to profiles_url }
       format.json { head :no_content }
     end
+  end
+
+  private
+
+  def hms_to_seconds(duration)
+    seconds = duration[:seconds].to_i
+    seconds += duration[:minutes].to_i * 60
+    seconds += duration[:hours].to_i * 3600
+    seconds
   end
 end

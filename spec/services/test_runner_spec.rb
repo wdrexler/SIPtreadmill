@@ -10,6 +10,7 @@ describe TestRunner do
   let(:options) do
     {
       source: TestRunner::BIND_IP,
+      source_port: 8836,
       number_of_calls: test_run.profile.max_calls,
       calls_per_second: test_run.profile.calls_per_second,
       max_concurrent: test_run.profile.max_concurrent,
@@ -20,6 +21,8 @@ describe TestRunner do
   end
 
   let(:mock_runner) { double run: {} }
+
+  let(:runner_options) { { full_sipp_output: false, async: true } }
 
   it "instantiates the runner with the correct parameters" do
     Runner.should_receive(:new).with("myfirsttest_run", scenario, options).and_return(mock_runner)
@@ -33,7 +36,7 @@ describe TestRunner do
     let(:receiver_options) do
       {
         source: TestRunner::BIND_IP,
-        source_port: 8838,
+        source_port: 8837,
         transport_mode: test_run.profile.transport_type.to_s
       }
     end
@@ -43,8 +46,9 @@ describe TestRunner do
 
     it "starts the receiver scenario before the main scenario" do
       receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).ordered.and_return(receiver_sippy)
-      SippyCup::Runner.should_receive(:new).with(receiver_sippy, full_sipp_output: false).ordered.and_return(receiver_runner)
+      SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options).ordered.and_return(receiver_runner)
       receiver_runner.should_receive :run
+      receiver_runner.should_receive :wait
 
       Runner.should_receive(:new).with("myfirsttest_run", scenario, options).ordered.and_return(mock_runner)
       mock_runner.should_receive(:run).ordered
@@ -54,8 +58,9 @@ describe TestRunner do
 
     it "should terminate the receiver scenario if any problems ocurr" do
       receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).ordered.and_return(receiver_sippy)
-      SippyCup::Runner.should_receive(:new).with(receiver_sippy, full_sipp_output: false).ordered.and_return(receiver_runner)
+      SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options).ordered.and_return(receiver_runner)
       receiver_runner.should_receive :run
+      receiver_runner.should_receive :wait 
 
       Runner.should_receive(:new).and_raise StandardError
       receiver_runner.should_receive :stop
@@ -72,19 +77,21 @@ describe TestRunner do
       it "writes the receiver scenario csv data and passes it to SippyCup" do
         subject.should_receive(:write_csv_data).with(receiver_scenario).ordered.and_return "/tmp/receiver.csv"
         receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).and_return(receiver_sippy)
-        SippyCup::Runner.should_receive(:new).with(receiver_sippy, full_sipp_output: false).ordered.and_return(receiver_runner)
+        SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options).ordered.and_return(receiver_runner)
         receiver_runner.should_receive :run
+        receiver_runner.should_receive :wait
 
         Runner.should_receive(:new).with("myfirsttest_run", scenario, options).ordered.and_return(mock_runner)
         mock_runner.should_receive(:run).ordered
         receiver_runner.should_receive :stop
-        subject.run 
+        subject.run
       end
     end
 
     context "and a registration scenario" do
       let(:registration_scenario) { FactoryGirl.build(:sipp_scenario, receiver: true) }
       let(:receiver_scenario) { FactoryGirl.build(:sipp_scenario, receiver: true, registration_scenario: registration_scenario) }
+      let(:runner_options) { { full_sipp_output: false } }
 
       it "writes the receiver scenario to disk and starts it before starting the main scenario" do
         reg_options = {
@@ -99,12 +106,13 @@ describe TestRunner do
         reg_sippy = registration_scenario.to_sippycup_scenario reg_options
         mock_reg_runner = double 'SippyCup::Runner'
         registration_scenario.should_receive(:to_sippycup_scenario).with(reg_options).ordered.and_return reg_sippy
-        SippyCup::Runner.should_receive(:new).with(reg_sippy, full_sipp_output: false).ordered.and_return(mock_reg_runner)
+        SippyCup::Runner.should_receive(:new).with(reg_sippy, runner_options).ordered.and_return(mock_reg_runner)
         mock_reg_runner.should_receive(:run).ordered
 
         receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).and_return(receiver_sippy)
-        SippyCup::Runner.should_receive(:new).with(receiver_sippy, full_sipp_output: false).ordered.and_return(receiver_runner)
+        SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options.merge(async: true)).ordered.and_return(receiver_runner)
         receiver_runner.should_receive :run
+        receiver_runner.should_receive :wait
 
         Runner.should_receive(:new).with("myfirsttest_run", scenario, options).ordered.and_return(mock_runner)
         mock_runner.should_receive(:run).ordered
@@ -115,6 +123,7 @@ describe TestRunner do
 
       context "with CSV data" do
         let(:registration_scenario) { FactoryGirl.build(:sipp_scenario, receiver: true, csv_data: 'abc;123') }
+        let(:runner_options) { { full_sipp_output: false } }
 
         it "passes the :scenario_variables option to the registration runner" do
           reg_options = {
@@ -131,12 +140,13 @@ describe TestRunner do
           mock_reg_runner = double 'SippyCup::Runner'
           subject.should_receive(:write_csv_data).with(registration_scenario).and_return '/tmp/reg.csv'
           registration_scenario.should_receive(:to_sippycup_scenario).with(reg_options).ordered.and_return reg_sippy
-          SippyCup::Runner.should_receive(:new).with(reg_sippy, full_sipp_output: false).ordered.and_return(mock_reg_runner)
+          SippyCup::Runner.should_receive(:new).with(reg_sippy, runner_options).ordered.and_return(mock_reg_runner)
           mock_reg_runner.should_receive(:run).ordered
 
           receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).and_return(receiver_sippy)
-          SippyCup::Runner.should_receive(:new).with(receiver_sippy, full_sipp_output: false).ordered.and_return(receiver_runner)
+          SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options.merge(async: true)).ordered.and_return(receiver_runner)
           receiver_runner.should_receive :run
+          receiver_runner.should_receive :wait
 
           Runner.should_receive(:new).with("myfirsttest_run", scenario, options).ordered.and_return(mock_runner)
           mock_runner.should_receive(:run).ordered

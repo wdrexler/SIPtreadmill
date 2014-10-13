@@ -27,6 +27,23 @@ class TestRunsController < ApplicationController
     end
   end
 
+  # GET /test_runs/1/results.json
+  def results
+    @test_run = TestRun.accessible_by(current_ability).find(params[:id])
+
+    respond_to do |format|
+      format.json do
+        result = { status: @test_run.state }
+        result[:status_class], result[:status_display] = @test_run.html_status
+        result[:results] = { total_calls: @test_run.total_calls_json, jitter: @test_run.jitter_json,
+                               packet_loss: @test_run.packet_loss_json, call_rate: @test_run.call_rate_json,
+                               target_resources: @test_run.target_resources_json }
+        result[:stats] = @test_run.stats_json
+        render json: result
+      end
+    end
+  end
+
   # GET /test_runs/new
   # GET /test_runs/new.json
   def new
@@ -66,8 +83,14 @@ class TestRunsController < ApplicationController
   # POST /test_runs
   # POST /test_runs.json
   def create
+    local_ports = params[:test_run].delete :local_ports
+    local_ports_array = []
+    local_ports.each do |k, v|
+      local_ports_array[k.to_i] = v
+    end
     @test_run = current_user.test_runs.new(params[:test_run])
     @test_run.user = current_user
+    @test_run.local_ports_array = local_ports_array
 
     respond_to do |format|
       if @test_run.save
@@ -87,7 +110,13 @@ class TestRunsController < ApplicationController
   # PUT /test_runs/1
   # PUT /test_runs/1.json
   def update
+    local_ports = params[:test_run].delete :local_ports
+    local_ports_array = []
+    local_ports.each do |k, v|
+      local_ports_array[k.to_i] = v
+    end
     @test_run = TestRun.accessible_by(current_ability).find(params[:id])
+    @test_run.local_ports_array = local_ports_array
 
     respond_to do |format|
       if @test_run.update_attributes(params[:test_run])

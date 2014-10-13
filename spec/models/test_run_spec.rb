@@ -43,6 +43,23 @@ describe TestRun do
     end
   end
 
+  context "#html_status" do
+    it 'should return the proper values for a test run in the queued state' do
+      subject.state = 'queued'
+      subject.html_status.should == ['label-inverse', 'Queued']
+    end
+
+    it 'should return the proper values for a test run in the runnning state' do
+      subject.state = 'running'
+      subject.html_status.should == ['label-info', 'Running']
+    end
+
+    it 'should return the proper values for a test run in the complete state' do
+      subject.state = 'complete'
+      subject.html_status.should == ['label-success', 'Complete']
+    end
+  end
+
   context "#enqueue" do
     context "with a pending job" do
       let(:state) { 'pending' }
@@ -79,6 +96,39 @@ describe TestRun do
           subject.jid.should == jid
           subject.enqueued_at.should == test_time
         end
+      end
+    end
+
+    context "#local_ports_array" do
+      it 'returns the array represented by the local_ports string' do
+        subject.local_ports = "[12345, 67890]"
+        subject.local_ports_array.should == [12345, 67890]
+      end
+    end
+
+    context "#local_ports_array=" do
+      it 'saves valid arrays passed to it' do
+        subject.local_ports_array = [12345, 15432]
+        subject.local_ports.should == "[12345,15432]"
+      end
+
+      it 'generates random numbers in place of invalid input' do
+        Kernel.should_receive(:rand).twice.and_return 12345, 15432
+        subject.local_ports_array = ['I am so invalid', 100]
+        subject.local_ports.should == "[12345,15432]"
+      end
+
+      it 'casts stringified integers to normal integers' do
+        subject.local_ports_array = ['12345', '15432']
+        subject.local_ports_array.should == [12345, 15432]
+      end
+
+      it 'raises an error when an array is not passed' do
+        expect { subject.local_ports_array = { this: 'is', a: 'hash' } }.to raise_error ArgumentError
+      end
+
+      it 'raises an error when the array elements are not unique' do
+        expect { subject.local_ports_array = [12345, 12345] }.to raise_error ArgumentError
       end
     end
 
@@ -202,13 +252,14 @@ describe TestRun do
   context "#duplicate" do
     it "should duplicate the test run" do
       test_run = FactoryGirl.create :test_run, user: FactoryGirl.build(:user), scenario: FactoryGirl.build(:scenario),
-                      profile: FactoryGirl.build(:profile), target: FactoryGirl.build(:target), name: "TestRun"
+                      profile: FactoryGirl.build(:profile), target: FactoryGirl.build(:target), name: "TestRun", local_ports: "[12345,54321]"
       new_tr = test_run.duplicate
       new_tr.user.should == test_run.user
       new_tr.scenario.should == test_run.scenario
       new_tr.profile.should == test_run.profile
       new_tr.target.should == test_run.target
       new_tr.name.should == "TestRun Retry 1"
+      new_tr.local_ports.should == "[12345,54321]"
     end
 
     it "should increment the number correctly" do

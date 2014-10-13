@@ -5,6 +5,7 @@ class TestRun < ActiveRecord::Base
   attr_accessible :target, :target_id
   attr_accessible :receiver_scenario, :receiver_scenario_id
   attr_accessible :registration_scenario, :registration_scenario_id
+  attr_accessible :local_ports
   belongs_to :profile
   belongs_to :scenario
   belongs_to :receiver_scenario, class_name: "Scenario"
@@ -19,6 +20,10 @@ class TestRun < ActiveRecord::Base
   delegate :name, :to => :target, :prefix => true
   delegate :registration_scenario, :to => :receiver_scenario, allow_nil: true
   validates_presence_of :name, :profile, :target, :user
+  mount_uploader :errors_report_file, ErrorsReportFileUploader
+  mount_uploader :stats_file, StatsFileUploader
+  delegate :url, to: :errors_report_file, prefix: true
+  delegate :url, to: :stats_file, prefix: true
 
   validate :validate_scenarios
 
@@ -40,7 +45,7 @@ class TestRun < ActiveRecord::Base
 
   def duplicate
     new_run = TestRun.new(scenario_id: self.scenario.id, profile_id: self.profile.id,
-                               target_id: self.target.id, description: self.description)
+                               target_id: self.target.id, description: self.description, local_ports: self.local_ports)
     new_run.user = self.user
     new_run.receiver_scenario_id = self.receiver_scenario.id if self.receiver_scenario
     if match = self.name.match(/Retry (\d+)$/)
@@ -89,13 +94,32 @@ class TestRun < ActiveRecord::Base
     self.sipp_data.average 'cps'
   end
 
+  def local_ports_array
+    JSON.parse self.local_ports
+  rescue => e
+    []
+  end
+
+  def local_ports_array=(new_local_ports)
+    raise ArgumentError, "Must set local ports to an array value" unless new_local_ports.kind_of?(Array)
+    raise ArgumentError, "Local ports must be unique" unless new_local_ports.uniq == new_local_ports
+    self.local_ports = new_local_ports.map do |e|
+      if e.to_i > 1024
+        e.to_i
+      else
+        Kernel.rand(10000...65535)
+      end
+    end.to_json
+  end
+
   def total_calls_json
     data = [{key: "Successful", values: []}, {key: "Failed", values: []}, {key: "Started", values: []}]
     self.sipp_data.all.each do |d|
       time = d.time.to_i * 1000 #Convert to JS epoch
       data[0][:values] << [time, d.successful_calls]
       data[1][:values] << [time, d.failed_calls]
-      data[2][:values] << [time, d.concurrent_calls]
+      data[2][:values] << [time, d.cps]
+      last_d = d
     end
     data.to_json
   end
@@ -138,6 +162,30 @@ class TestRun < ActiveRecord::Base
       data[1][:values] << [time, d.memory]
     end
     data.to_json
+  end
+
+  def stats_json
+    { total_calls: self.total_calls, successful_calls: self.successful_calls,
+      failed_calls: self.failed_calls, avg_call_duration: self.avg_call_duration,
+      avg_jitter: self.avg_jitter, max_jitter: self.max_jitter,
+      avg_packet_loss: self.avg_packet_loss, max_packet_loss: self.max_packet_loss }
+  end
+
+  def html_status
+    case self.state
+    when 'pending'
+      ['', 'Pending']
+    when 'queued'
+      ['label-inverse', 'Queued']
+    when 'running'
+      ['label-info', 'Running']
+    when 'complete'
+      ['label-success', 'Complete']
+    when 'complete_with_warnings'
+      ['label-warning', 'Warnings']
+    when 'complete_with_errors'
+      ['label-important', 'Errors']
+    end
   end
 
   state_machine :initial => :pending do

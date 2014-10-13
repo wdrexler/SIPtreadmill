@@ -27,16 +27,21 @@
 
             %dt Sender scenario:
             %dd= link_to(@test_run.scenario.name, @test_run.scenario) if @test_run.scenario
+            %dd= "Port: #{@test_run.local_ports_array[0]}"
 
             %dt Registration scenario:
             %dd= link_to(@test_run.registration_scenario.name, @test_run.registration_scenario) if @test_run.registration_scenario
 
             %dt Receiver scenario:
             %dd= link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
+            %dd= "Port: #{@test_run.local_ports_array[1]}"
 
             %dt Profile:
             %dd= link_to @test_run.profile_name, @test_run.profile
-            %dd= "Max Calls: #{@test_run.profile.max_calls}"
+            - if @test_run.profile.use_time
+              %dd= "Duration: #{@test_run.profile.duration}"
+            - else
+              %dd= "Max Calls: #{@test_run.profile.max_calls}"
             %dd= "Max Concurrent: #{@test_run.profile.max_concurrent}"
             %dd= "CPS: #{@test_run.profile.calls_per_second}"
             %dd= "Transport type: #{@test_run.profile.transport_type.text}"
@@ -44,6 +49,10 @@
             %dt Target:
             %dd= link_to @test_run.target_name, @test_run.target
             %dd= "Address: #{@test_run.target.address}"
+
+            %dt Logs:
+            %dd= link_to "Errors Report", @test_run.errors_report_file_url
+            %dd= link_to "Raw Stats", @test_run.stats_file_url
 
             %dt Created By:
             %dd= @test_run.user.full_name if @test_run.user
@@ -60,7 +69,7 @@
                   = time_ago_in_words(@test_run.updated_at) + " ago"
 
             %dt Status
-            %dd= status_label @test_run.state
+            %dd#statusLabel= status_label @test_run.state
 
             - if @test_run.state == 'complete_with_errors'
               %dt Error Name
@@ -93,47 +102,71 @@
                   = label_tag :password, "SSH Password for Target"
                 = submit_tag "Enqueue", {class: "btn btn-success"}
         - when 'queued'
-          .box
+          .box#inProgress
             .box-header
               %span.title Job is queued, #{@stats.enqueued} jobs in the queue
             .box-content.padded
-              %p
-                Page will refresh in
-                %span#countdown-secs
-              %p
-                = button_to "Cancel", cancel_test_run_path(@test_run), {class: "btn btn-danger"}
-        - when 'running'
+              %p= button_to "Cancel", cancel_test_run_path(@test_run), {class: "btn btn-danger"}
+      .row-fluid#graphs
+        .span12
           .box
             .box-header
-              %span.title The job is running right now!
+              %span.title Test run results
             .box-content.padded
-              %p
-                Page will refresh in
-                %span#countdown-secs
-              %p
-                = button_to "stop", stop_test_run_path(@test_run), {class: "btn btn-danger"}
-        - when 'complete', 'complete_with_warnings', 'complete_with_errors'
-          .row-fluid
-            .span12
-              .box
-                .box-header
-                  %span.title Test run results
-                .box-content.padded
-                  %h2 Total Calls
-                  #callsChart{style: 'height: 250px'}
-                    %svg
-                  %h3 Calls Per Second / Concurrent Calls
-                  #callRateChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Jitter
-                  #jitterChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Packet Loss
-                  #packetLossChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Target Resources
-                  #targetResourcesChart{style: 'height: 250px'}
-                    %svg
+              %h2 Total Calls
+              #callsChart{style: 'height: 250px'}
+                %svg
+              %h3 Calls Per Second / Concurrent Calls
+              #callRateChart{style: 'height: 250px'}
+                %svg
+              %h2 Jitter
+              #jitterChart{style: 'height: 250px'}
+                %svg
+              %h2 Packet Loss
+              #packetLossChart{style: 'height: 250px'}
+                %svg
+              %h2 Target Resources
+              #targetResourcesChart{style: 'height: 250px'}
+                %svg
+      .row-fluid#stats
+        .span6
+          .box
+            .box-header
+              %span.title Performance
+            .box-content.padded
+              %dl
+                %dt Total calls
+                %dd#totalCalls= @test_run.total_calls
+                %dt Successful calls
+                %dd#successfulCalls= @test_run.successful_calls
+                %dt Failed calls
+                %dd#failedCalls= @test_run.failed_calls
+                %dt Average call duration
+                %dd#avgCallDuration= @test_run.avg_call_duration
+                %dt Average CPS
+                %dd#avgCPS= @test_run.avg_cps
+        .span6
+          .box
+            .box-header
+              %span.title QoS
+            .box-content.padded
+              %dl
+                %dt Average jitter
+                %dd#avgJitter= @test_run.avg_jitter
+                %dt Max jitter
+                %dd#maxJitter= @test_run.max_jitter
+                %dt Average packet loss
+                %dd#avgPktLoss= @test_run.avg_packet_loss
+                %dt Max packet loss
+                %dd#maxPktLoss= @test_run.max_packet_loss
+      .row-fluid#summary
+        .span12
+          .box
+            .box-header
+              %span.title Test run summary
+            .box-content.padded
+              %pre{style: 'font-size: 0.8em'}
+                = @test_run.summary_report
           .row-fluid
             .span6
               .box
@@ -167,7 +200,7 @@
                     %dt Max packet loss
                     %dd= @test_run.max_packet_loss
 
-- if @test_run.state == 'queued' || @test_run.state == 'running' || @test_run.state =~ /complete/
+- if @test_run.state == 'queued' || @test_run.state == 'running' 
   :javascript
     $(function(){
 
@@ -227,6 +260,24 @@
       $('#btn_submit_call_rate').on('click', function () {
         submitCallRate(#{@test_run.id});
       });
+
+- if @test_run.state == 'queued' || @test_run.state == 'running'
+  :javascript
+    function setTestRunInterval() {
+       window.testRunInterval = window.setInterval(refreshTestRun, 1000, #{@test_run.id});
+    }
+    $(function() {
+      $('#graphs').hide();
+      $('#stats').hide();
+      $('#summary').hide();
+      setTestRunInterval();
+    });
+- if @test_run.state == 'pending'
+  :javascript
+    $(function() {
+      $('#graphs').hide();
+      $('#stats').hide();
+      $('#summary').hide();
     });
 
 - if @test_run.state =~ /complete/
