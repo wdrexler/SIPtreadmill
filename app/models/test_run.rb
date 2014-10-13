@@ -225,11 +225,6 @@ class TestRun < ActiveRecord::Base
       test_run.save
     end
 
-    after_transition on: :start do |test_run, transition|
-      test_run.call_rate = '300'
-      test_run.save
-    end
-
     after_transition on: :stop do |test_run, transition|
       if test_run.jid
         Sidekiq.redis do |r|
