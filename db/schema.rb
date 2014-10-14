@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141010203518) do
+ActiveRecord::Schema.define(:version => 20141014201110) do
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
@@ -104,6 +104,7 @@ ActiveRecord::Schema.define(:version => 20141010203518) do
     t.text     "summary_report"
     t.string   "errors_report_file"
     t.string   "stats_file"
+    t.integer  "control_port"
   end
 
   create_table "users", :force => true do |t|

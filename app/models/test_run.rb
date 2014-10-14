@@ -5,7 +5,7 @@ class TestRun < ActiveRecord::Base
   attr_accessible :target, :target_id
   attr_accessible :receiver_scenario, :receiver_scenario_id
   attr_accessible :registration_scenario, :registration_scenario_id
-  attr_accessible :local_ports
+  attr_accessible :local_ports, :control_port
   belongs_to :profile
   belongs_to :scenario
   belongs_to :receiver_scenario, class_name: "Scenario"
@@ -26,6 +26,7 @@ class TestRun < ActiveRecord::Base
   delegate :url, to: :stats_file, prefix: true
 
   validate :validate_scenarios
+  before_save :generate_control_port
 
   STOP_JOBS_NAMESPACE = 'stopjobs'
 
@@ -41,6 +42,10 @@ class TestRun < ActiveRecord::Base
     if receiver_scenario.present? && receiver_scenario.receiver == false
       errors.add(:scenario, "Please select a receiver scenario.")
     end
+  end
+
+  def generate_control_port
+    self.control_port = Kernel.rand 10000...65535
   end
 
   def duplicate
