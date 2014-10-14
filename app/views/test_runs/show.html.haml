@@ -85,17 +85,16 @@
               %dt Error Message
               %dd= @test_run.error_message
 
-    - if @test_run.state == 'running'
-      .span4
+    - if @test_run.state == 'running' || @test_run.state == 'queued'
+      .span9
         .box
           .box-header
             %span.title Ramper
-            %div{:id => "div_call_rate", :style => "float:left;  height:100%; width:100%"}
-              %input#btn_decrease_call_rate{:class => "btn btn-success", :type => "button", :value => "Decrease"}
-              %input#tfield_call_rate{:type => "text", :name => "call_rate", :maxlength => "6", :size => "6", :value => "100", :width => "0"}
-              %input#btn_increase_call_rate{:class => "btn btn-success", :type => "button", :value => "Increase"}
-            %br
-            %input#btn_submit_call_rate{:class => "btn btn-success", :type => "button", :value => "Submit"}
+          .box-content.padded
+            #div_call_rate{ style: "height:100%; width:100%" }
+              #btn_decrease_call_rate{ class: "btn btn-success icon-minus", type: "button", style: 'position: relative; top: -5px;' }
+              %input#tfield_call_rate{ type: "text", name: "call_rate", maxlength: "6", value: "#{@test_run.profile.calls_per_second}", style: 'width: 75px' }
+              #btn_increase_call_rate{ class: "btn btn-success icon-plus", type: "button", style: 'position: relative; top: -5px;' }
 
     .span9
       - case @test_run.state
@@ -121,83 +120,74 @@
             .box-header
               %span.title Test run results
             .box-content.padded
-              %p
-                Page will refresh in
-                %span#countdown-secs
-              %p
-                = button_to "stop", stop_test_run_path(@test_run), {class: "btn btn-danger"}
-        - when 'complete', 'complete_with_warnings', 'complete_with_errors'
-          .row-fluid
-            .span12
-              .box
-                .box-header
-                  %span.title Test run results
-                .box-content.padded
-                  %h2 Total Calls
-                  #callsChart{style: 'height: 250px'}
-                    %svg
-                  %h3 Calls Per Second / Concurrent Calls
-                  #callRateChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Jitter
-                  #jitterChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Packet Loss
-                  #packetLossChart{style: 'height: 250px'}
-                    %svg
-                  %h2 Target Resources
-                  #targetResourcesChart{style: 'height: 250px'}
-                    %svg
-          .row-fluid
-            .span6
-              .box
-                .box-header
-                  %span.title Performance
-                .box-content.padded
-                  %dl
-                    %dt Total calls
-                    %dd= @test_run.total_calls
-                    %dt Successful calls
-                    %dd= @test_run.successful_calls
-                    %dt Failed calls
-                    %dd= @test_run.failed_calls
-                    %dt Average call duration
-                    %dd= @test_run.avg_call_duration
-                    %dt Average CPS
-                    %dd= @test_run.avg_cps
-
-            .span6
-              .box
-                .box-header
-                  %span.title QoS
-                .box-content.padded
-                  %dl
-                    %dt Average jitter
-                    %dd= @test_run.avg_jitter
-                    %dt Max jitter
-                    %dd= @test_run.max_jitter
-                    %dt Average packet loss
-                    %dd= @test_run.avg_packet_loss
-                    %dt Max packet loss
-                    %dd= @test_run.max_packet_loss
-
-- if @test_run.state == 'queued' || @test_run.state == 'running' || @test_run.state =~ /complete/
+              %h2 Total Calls
+              #callsChart{style: 'height: 250px'}
+                %svg
+              %h3 Calls Per Second / Concurrent Calls
+              #callRateChart{style: 'height: 250px'}
+                %svg
+              %h2 Jitter
+              #jitterChart{style: 'height: 250px'}
+                %svg
+              %h2 Packet Loss
+              #packetLossChart{style: 'height: 250px'}
+                %svg
+              %h2 Target Resources
+              #targetResourcesChart{style: 'height: 250px'}
+                %svg
+      .row-fluid#stats
+        .span6
+          .box
+            .box-header
+              %span.title Performance
+            .box-content.padded
+              %dl
+                %dt Total calls
+                %dd#totalCalls= @test_run.total_calls
+                %dt Successful calls
+                %dd#successfulCalls= @test_run.successful_calls
+                %dt Failed calls
+                %dd#failedCalls= @test_run.failed_calls
+                %dt Average call duration
+                %dd#avgCallDuration= @test_run.avg_call_duration
+                %dt Average CPS
+                %dd#avgCPS= @test_run.avg_cps
+        .span6
+          .box
+            .box-header
+              %span.title QoS
+            .box-content.padded
+              %dl
+                %dt Average jitter
+                %dd#avgJitter= @test_run.avg_jitter
+                %dt Max jitter
+                %dd#maxJitter= @test_run.max_jitter
+                %dt Average packet loss
+                %dd#avgPktLoss= @test_run.avg_packet_loss
+                %dt Max packet loss
+                %dd#maxPktLoss= @test_run.max_packet_loss
+      .row-fluid#summary
+        .span12
+          .box
+            .box-header
+              %span.title Test run summary
+            .box-content.padded
+              %pre{style: 'font-size: 0.8em'}
+                = @test_run.summary_report
+- if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
-    $(function(){
-
-      var pressTimer;
-      var interval;
-
-      $('#countdown-secs').countdown({
-        date: +(new Date) + 10000,
-        render: function(data) {
-          $(this.el).text(data.sec + "s");
-        },
-        onEnd: function() {
-          location.reload(true);
+    var pressTimer;
+    var interval;
+    function setTestRunInterval() {
+       window.testRunInterval = window.setInterval(refreshTestRun, 1000, #{@test_run.id});
+    }
+    $(function() {
+      $('#tfield_call_rate').keypress(function(evt) {
+        if(evt.which == 13) {
+          submitCallRate(#{@test_run.id});
+          return true;
         }
       });
-
       $('#btn_increase_call_rate').on('click', function () {
         if(longpress) { // if detect hold, stop onclick function
           return false;
@@ -238,9 +228,23 @@
         clearInterval(interval);
       });
 
+<<<<<<< HEAD
       $('#btn_submit_call_rate').on('click', function () {
         submitCallRate(#{@test_run.id});
       });
+=======
+      $('#graphs').hide();
+      $('#stats').hide();
+      $('#summary').hide();
+      setTestRunInterval();
+    });
+- if @test_run.state == 'pending'
+  :javascript
+    $(function() {
+      $('#graphs').hide();
+      $('#stats').hide();
+      $('#summary').hide();
+>>>>>>> Style cleanup, enhancements, and merge conflict resolution for the TestRun#show view
     });
 
 - if @test_run.state =~ /complete/
