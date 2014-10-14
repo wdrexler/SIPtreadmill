@@ -47,7 +47,7 @@ class TestRunWorker
       result = r.rpop(TestRunsController::CREATE_CALL_RATE_JOBS_NAMESPACE)
     end
     if result && cps_data = JSON.parse(result)
-      @test_runner.set_cps cps_data
+      @test_runner.set_cps cps_data[1]
     end
   end
 

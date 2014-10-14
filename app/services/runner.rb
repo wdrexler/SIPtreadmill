@@ -48,8 +48,11 @@ class Runner
           @error = e
         end
       end
-      until @result
-        @sippy_runner.set_cps(@target_cps)
+      until @result || @error
+        if @cps_change
+          @sippy_runner.set_cps @target_cps
+          @cps_change = false
+        end
         sleep 1
       end
       raise @error if @error
@@ -80,6 +83,7 @@ class Runner
 
   def set_cps(target_cps)
     @target_cps = target_cps
+    @cps_change = true
   end
 
   def stop

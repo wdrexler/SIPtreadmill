@@ -103,7 +103,8 @@ class TestRunner
       transport_mode: @test_run.profile.transport_type.to_s,
       vmstat_buffer: @vmstat_buffer,
       use_time: @test_run.profile.use_time,
-      time_limit: @test_run.profile.duration
+      time_limit: @test_run.profile.duration,
+      control_port: @test_run.control_port
     }
 
     opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?
