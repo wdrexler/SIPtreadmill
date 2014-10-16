@@ -72,7 +72,8 @@ class TestRunner
     options = {
       source: TestRunner::BIND_IP,
       source_port: @test_run.local_ports_array[1],
-      transport_mode: @test_run.profile.transport_type.to_s
+      transport_mode: @test_run.profile.transport_type.to_s,
+      receiver_mode: true
     }
 
     options[:scenario_variables] = write_csv_data @test_run.receiver_scenario if @test_run.receiver_scenario.csv_data.present?
