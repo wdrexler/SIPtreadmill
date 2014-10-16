@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: git://github.com/wdrexler/sippy_cup.git
-  revision: cbd8758a045f51d861ee7f32f63c0525085b312d
+  revision: 6e07bcda97ad2c1268e0d1670e35c2a490459e1e
   branch: develop
   specs:
     sippy_cup (0.4.1)

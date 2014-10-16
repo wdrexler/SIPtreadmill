@@ -6,6 +6,7 @@ SIPTreadmill::Application.routes.draw do
       post 'cancel'
       post 'stop'
       get  'copy'
+      post 'change_call_rate'
       get  'results'
     end
   end

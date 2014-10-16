@@ -48,3 +48,66 @@ var refreshTestRun = function(test_run_id) {
     });
   }
 }
+
+var increaseCallRate = function(test_run_id) {
+  if(test_run_id !== null) {
+    var element = document.getElementById("tfield_call_rate");
+    var current_call_rate = +(element.value) || 0;
+    current_call_rate += 10;
+    $.ajax({
+      type: "POST",
+      dataType: "json",
+      url: "/test_runs/" + test_run_id + "/change_call_rate",
+      data: { change: 10, current_call_rate: current_call_rate },
+      success: function(data) {
+        element.value = current_call_rate;
+      },
+      error: function() {
+        //alert("failed to increase call rate!!")
+      }
+    })
+  }
+}
+
+var decreaseCallRate = function(test_run_id) {
+  if(test_run_id !== null) {
+    var element = document.getElementById("tfield_call_rate");
+    var current_call_rate = +(element.value) || 0;
+    if(current_call_rate > 0){
+      current_call_rate -= 10;
+      $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/test_runs/" + test_run_id + "/change_call_rate",
+        data: { change: -10, current_call_rate: current_call_rate },
+        success: function(data) {
+          element.value = current_call_rate;
+        },
+        error: function() {
+          //alert("failed to increase call rate!!")
+        }
+      })
+    }
+  }
+}
+
+var submitCallRate = function(test_run_id) {
+  if(test_run_id !== null) {
+    var element = document.getElementById("tfield_call_rate");
+    var current_call_rate = +(element.value) || 0;
+    if(current_call_rate > 0){
+      $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/test_runs/" + test_run_id + "/change_call_rate",
+        data: { change: 0, current_call_rate: current_call_rate },
+        success: function(data) {
+          element.value = current_call_rate;
+        },
+        error: function() {
+          //alert("failed to increase call rate!!")
+        }
+      })
+    }
+  }
+}

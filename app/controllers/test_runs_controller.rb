@@ -3,6 +3,8 @@ class TestRunsController < ApplicationController
   before_filter :authenticate_user!
   load_and_authorize_resource
 
+  CREATE_CALL_RATE_JOBS_NAMESPACE = 'new_call_rate_jobs'
+
   # GET /test_runs
   # GET /test_runs.json
   def index
@@ -151,6 +153,19 @@ class TestRunsController < ApplicationController
     else
       redirect_to @test_run, alert: 'Test run can not be enqueued again.'
     end
+  end
+
+  # POST /test_runs/1/change_call_rate
+  def change_call_rate
+    @test_run = TestRun.accessible_by(current_ability).find(params[:id])
+      if @test_run.state == 'running'
+        if @test_run.jid
+          Sidekiq.redis do |r|
+            r.lpush CREATE_CALL_RATE_JOBS_NAMESPACE, [@test_run.jid, params[:current_call_rate]].to_json
+          end
+        end
+        render :json => {:current_call_rate => @test_run.call_rate_json}
+      end
   end
 
   def cancel

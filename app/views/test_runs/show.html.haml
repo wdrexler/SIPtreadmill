@@ -77,6 +77,17 @@
               %dt Error Message
               %dd= @test_run.error_message
 
+    - if @test_run.state == 'running' || @test_run.state == 'queued'
+      .span9
+        .box
+          .box-header
+            %span.title Ramper
+          .box-content.padded
+            #div_call_rate{ style: "height:100%; width:100%" }
+              #btn_decrease_call_rate{ class: "btn btn-success icon-minus", type: "button", style: 'position: relative; top: -5px;' }
+              %input#tfield_call_rate{ type: "text", name: "call_rate", maxlength: "6", value: "#{@test_run.profile.calls_per_second}", style: 'width: 75px' }
+              #btn_increase_call_rate{ class: "btn btn-success icon-plus", type: "button", style: 'position: relative; top: -5px;' }
+
     .span9
       - case @test_run.state
         - when 'pending'
@@ -157,10 +168,58 @@
                 = @test_run.summary_report
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
+    var pressTimer;
+    var interval;
     function setTestRunInterval() {
        window.testRunInterval = window.setInterval(refreshTestRun, 1000, #{@test_run.id});
     }
     $(function() {
+      $('#tfield_call_rate').keypress(function(evt) {
+        if(evt.which == 13) {
+          submitCallRate(#{@test_run.id});
+          return true;
+        }
+      });
+      $('#btn_increase_call_rate').on('click', function () {
+        if(longpress) { // if detect hold, stop onclick function
+          return false;
+        };
+        increaseCallRate(#{@test_run.id});
+      });
+
+      $('#btn_increase_call_rate').on('mousedown', function () {
+        longpress = false;
+        pressTimer = window.setTimeout(function(){
+          longpress = true;
+          interval = setInterval(function(){increaseCallRate(#{@test_run.id})}, 500);
+        },500);
+      });
+
+      $('#btn_increase_call_rate').on('mouseup', function () {
+        clearTimeout(pressTimer);
+        clearInterval(interval);
+      });
+
+      $('#btn_decrease_call_rate').on('click', function () {
+        if(longpress) { // if detect hold, stop onclick function
+          return false;
+        };
+        decreaseCallRate(#{@test_run.id});
+      });
+
+      $('#btn_decrease_call_rate').on('mousedown', function () {
+        longpress = false;
+        pressTimer = window.setTimeout(function(){
+          longpress = true;
+          interval = setInterval(function(){decreaseCallRate(#{@test_run.id})}, 500);
+        },500);
+      });
+
+      $('#btn_decrease_call_rate').on('mouseup', function () {
+        clearTimeout(pressTimer);
+        clearInterval(interval);
+      });
+
       $('#graphs').hide();
       $('#stats').hide();
       $('#summary').hide();
@@ -173,6 +232,7 @@
       $('#stats').hide();
       $('#summary').hide();
     });
+
 - if @test_run.state =~ /complete/
   :javascript
     $(function() {

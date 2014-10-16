@@ -37,7 +37,8 @@ describe TestRunner do
       {
         source: TestRunner::BIND_IP,
         source_port: 8837,
-        transport_mode: test_run.profile.transport_type.to_s
+        transport_mode: test_run.profile.transport_type.to_s,
+        receiver_mode: true
       }
     end
 
@@ -60,7 +61,7 @@ describe TestRunner do
       receiver_scenario.should_receive(:to_sippycup_scenario).twice.with(receiver_options).ordered.and_return(receiver_sippy)
       SippyCup::Runner.should_receive(:new).with(receiver_sippy, runner_options).ordered.and_return(receiver_runner)
       receiver_runner.should_receive :run
-      receiver_runner.should_receive :wait 
+      receiver_runner.should_receive :wait
 
       Runner.should_receive(:new).and_raise StandardError
       receiver_runner.should_receive :stop

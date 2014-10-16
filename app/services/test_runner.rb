@@ -37,6 +37,10 @@ class TestRunner
     close_csv_files
   end
 
+  def set_cps(target_cps)
+    @runner.set_cps target_cps
+  end
+
   def stop
     @stopped = true
     @runner.stop
@@ -68,7 +72,8 @@ class TestRunner
     options = {
       source: TestRunner::BIND_IP,
       source_port: @test_run.local_ports_array[1],
-      transport_mode: @test_run.profile.transport_type.to_s
+      transport_mode: @test_run.profile.transport_type.to_s,
+      receiver_mode: true
     }
 
     options[:scenario_variables] = write_csv_data @test_run.receiver_scenario if @test_run.receiver_scenario.csv_data.present?
@@ -99,7 +104,8 @@ class TestRunner
       transport_mode: @test_run.profile.transport_type.to_s,
       vmstat_buffer: @vmstat_buffer,
       use_time: @test_run.profile.use_time,
-      time_limit: @test_run.profile.duration
+      time_limit: @test_run.profile.duration,
+      control_port: @test_run.control_port
     }
 
     opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?

@@ -24,6 +24,8 @@ class Runner
 
     @sipp_file = nil
     @rtcp_data = nil
+    @result = nil
+    @target_cps = @opts[:calls_per_second]
   rescue
     clean_up_handlers
     raise
@@ -36,8 +38,24 @@ class Runner
     run_rtcp_listener
 
     begin
-      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false
+      @result = nil
+      @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false, async: true
       @sippy_runner.run
+      Thread.new do
+        begin
+          @result = @sippy_runner.wait
+        rescue => e
+          @error = e
+        end
+      end
+      until @result || @error
+        if @cps_change
+          @sippy_runner.set_cps @target_cps
+          @cps_change = false
+        end
+        sleep 1
+      end
+      raise @error if @error
     rescue SippyCup::SippGenericError
       #SippGenericError gets raised on SIGUSR1, ignore it for now
     ensure
@@ -61,6 +79,11 @@ class Runner
       summary_report: summary_report,
       errors_report_file: @errors_report_file
     }
+  end
+
+  def set_cps(target_cps)
+    @target_cps = target_cps
+    @cps_change = true
   end
 
   def stop
