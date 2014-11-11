@@ -168,7 +168,7 @@ class TestRun < ActiveRecord::Base
 
   def call_rate_json
     data = [{key: "Calls Per Second", values: []}, {key: "Concurrent Calls", values: []}]
-    self.sipp_data.all.each do |d|
+    self.test_run_scenarios.first.sipp_data.all.each do |d|
       time = d.time.to_i * 1000
       data[0][:values] << [time, d.cps]
       data[1][:values] << [time, d.concurrent_calls]
