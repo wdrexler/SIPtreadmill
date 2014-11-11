@@ -1,19 +1,20 @@
 class TestRun < ActiveRecord::Base
   attr_accessible :description, :name, :jid, :enqueued_at, :started_at, :completed_at
   attr_accessible :profile, :profile_id
-  attr_accessible :scenario, :scenario_id
   attr_accessible :target, :target_id
+  attr_accessible :test_run_scenarios_attributes
   attr_accessible :receiver_scenario, :receiver_scenario_id
   attr_accessible :registration_scenario, :registration_scenario_id
   attr_accessible :to_user, :from_user, :advertise_address, :sipp_options
   attr_accessible :local_ports, :control_port
   belongs_to :profile
-  belongs_to :scenario
+  has_many :test_run_scenarios
+  has_many :scenarios, through: :test_run_scenarios
   belongs_to :receiver_scenario, class_name: "Scenario"
   belongs_to :target
   belongs_to :user
-  has_many :sipp_data, class_name: "SippData"
-  has_many :rtcp_data, class_name: "RtcpData"
+  has_many :sipp_data, class_name: "SippData", through: :test_run_scenarios
+  has_many :rtcp_data, class_name: "RtcpData", through: :test_run_scenarios
   has_many :system_load_data, class_name: "SystemLoadDatum"
   delegate :first_name, :last_name, :to => :user, :prefix => true
   delegate :name, :to => :scenario, :prefix => true
@@ -25,28 +26,23 @@ class TestRun < ActiveRecord::Base
   mount_uploader :stats_file, StatsFileUploader
   delegate :url, to: :errors_report_file, prefix: true
   delegate :url, to: :stats_file, prefix: true
+  accepts_nested_attributes_for :test_run_scenarios
 
   validate :validate_scenarios
-  before_save :generate_control_port
+  after_save  :save_test_run_scenarios
 
   STOP_JOBS_NAMESPACE = 'stopjobs'
 
   def validate_scenarios
-    unless scenario.present? || receiver_scenario.present?
-      errors.add(:scenario, "At least one scenario must be selected")
-    end
-
-    if scenario.present? && scenario.receiver == true
-      errors.add(:scenario, "Please select a sender scenario.")
-    end
-
     if receiver_scenario.present? && receiver_scenario.receiver == false
       errors.add(:scenario, "Please select a receiver scenario.")
     end
   end
 
-  def generate_control_port
-    self.control_port = Kernel.rand 10000...65535
+  def save_test_run_scenarios
+    self.test_run_scenarios.all.each do |trs|
+      trs.save
+    end
   end
 
   def duplicate
@@ -127,15 +123,47 @@ class TestRun < ActiveRecord::Base
     end.to_json
   end
 
-  def total_calls_json
-    data = [{key: "Successful", values: []}, {key: "Failed", values: []}, {key: "Started", values: []}]
-    self.sipp_data.all.each do |d|
-      time = d.time.to_i * 1000 #Convert to JS epoch
-      data[0][:values] << [time, d.successful_calls]
-      data[1][:values] << [time, d.failed_calls]
-      data[2][:values] << [time, d.cps]
+  def test_run_scenarios_attributes=(attrs)
+    attrs.each do |i, v|
+      puts "BUILDING NEW TRS FOR #{v.inspect}"
+      if self.test_run_scenarios.all[i.to_i]
+        trs = self.test_run_scenarios.all[i.to_i]
+      else
+        trs = self.test_run_scenarios.build
+      end
+      trs.scenario = Scenario.find v[:scenario_id].to_i
+      trs.test_run = self
+      puts "ERRORS: #{trs.errors.inspect}"
     end
-    data.to_json
+    (self.test_run_scenarios.all[(attrs.size)..-1] || []).map &:destroy
+  end
+
+  def total_calls_colors
+    count  = self.test_run_scenarios.count
+    r      = Array.new(count, '#ff2a2a')
+    g      = Array.new(count, '#55ff55')
+    y      = Array.new(count, '#ffcc00')
+    [g, r, y].flatten
+  end
+
+  def total_calls_json
+    data = [[], [], []]
+    self.test_run_scenarios.all.each_with_index do |trs, i|
+      trs_data = [{key: "Successful (#{i})", values: []}, {key: "Failed (#{i})", values: []}, {key: "Started (#{i})", values: []}]
+      trs.sipp_data.all.each do |d|
+        time = d.time.to_i * 1000 #Convert to JS epoch
+        trs_data[0][:values] << [time, d.successful_calls]
+        trs_data[1][:values] << [time, d.failed_calls]
+        trs_data[2][:values] << [time, d.cps]
+      end
+      puts data.inspect
+      puts trs_data.inspect
+      data[0] << trs_data[0]
+      data[1] << trs_data[1]
+      data[2] << trs_data[2]
+      data.map! { |d| d.flatten!; d }
+    end
+    data.flatten.to_json
   end
 
   def jitter_json

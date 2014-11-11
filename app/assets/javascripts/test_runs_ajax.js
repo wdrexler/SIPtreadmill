@@ -1,5 +1,5 @@
 var drawGraphs = function(data) {
-  drawTotalCallsGraph(JSON.parse(data.results.total_calls), '#callsChart');
+  totalCallsGraph = drawTotalCallsGraph(JSON.parse(data.results.total_calls), '#callsChart', getColors());
   drawLineGraph(JSON.parse(data.results.jitter), {'target': '#jitterChart', 'xAxis': 'Time', 'yAxis': 'Jitter'});
   drawLineGraph(JSON.parse(data.results.packet_loss), {'target': '#packetLossChart', 'xAxis': 'Time', 'yAxis': 'Packet Loss'});
   drawLineGraph(JSON.parse(data.results.call_rate), {'target': '#callRateChart', 'xAxis': 'Time', 'yAxis': 'Calls'});

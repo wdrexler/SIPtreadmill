@@ -33,7 +33,11 @@
                     %a{"sort" => test_run.completed_at, "data-original-title" => test_run.completed_at.to_s(:long_ordinal), "data-placement" => "bottom", "data-toggle" => "tooltip", :href => "#", :title => ""}
                       = time_ago_in_words(test_run.completed_at) + " ago"
                 %td= test_run.name
-                %td= link_to(test_run.scenario_name, test_run.scenario) if test_run.scenario
+                %td= test_run.description
+                %td
+                  - test_run.scenarios.each do |s|
+                    = link_to(s.name, s)
+                    %br
                 %td= link_to(test_run.registration_scenario.name, test_run.registration_scenario) if test_run.registration_scenario
                 %td= link_to(test_run.receiver_scenario.name, test_run.receiver_scenario) if test_run.receiver_scenario
                 %td= link_to test_run.profile_name, test_run.profile

@@ -3,7 +3,7 @@ require 'json'
 require 'tempfile'
 
 class Runner
-  attr_accessor :sipp_file, :rtcp_data, :stats_file
+  attr_accessor :sipp_file, :rtcp_data, :stats_file, :error
   def initialize(name, scenario, opts = {})
     @name = name
     @scenario = scenario
@@ -33,6 +33,7 @@ class Runner
   end
 
   def run
+    @running = true
     if @stats_collector
       run_and_catch_errors mode: :error do
         @stats_collector.run
@@ -47,11 +48,7 @@ class Runner
       @result = nil
       @sippy_runner = SippyCup::Runner.new @scenario.to_sippycup_scenario(@opts), full_sipp_output: false, async: true
       @sippy_runner.run
-<<<<<<< HEAD
       check_ssh_errors
-    rescue SippyCup::SippGenericError
-      #SippGenericError gets raised on SIGUSR1, ignore it for now
-=======
       Thread.new do
         begin
           @result = @sippy_runner.wait
@@ -67,28 +64,31 @@ class Runner
         sleep 1
       end
       raise @error if @error
->>>>>>> Add the worker part of call ramping
+    rescue SippyCup::SippGenericError => e
+      #SippGenericError gets raised on SIGUSR1, ignore it for now
     ensure
       @rtcp_listener.stop
       @stats_collector.stop if @stats_collector
+      @running = false
     end
 
     unless @stopped
       rtcp_data = @rtcp_listener.organize_data
-      @stats_file.rewind
-      stats_data = @stats_file.read
     end
 
     @summary_report_file.rewind
     summary_report = @summary_report_file.read
 
     {
-      stats_data: stats_data,
       stats_file: @stats_file,
       rtcp_data: rtcp_data,
       summary_report: summary_report,
       errors_report_file: @errors_report_file
     }
+  end
+
+  def running?
+    @running
   end
 
   def set_cps(target_cps)

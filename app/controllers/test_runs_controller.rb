@@ -84,9 +84,9 @@ class TestRunsController < ApplicationController
   # POST /test_runs.json
   def create
     local_ports = params[:test_run].delete :local_ports
-    local_ports_array = []
-    local_ports.each do |k, v|
-      local_ports_array[k.to_i] = v
+    local_ports_array = [local_ports.delete("0")]
+    local_ports.each do |_, v|
+      local_ports_array << v
     end
     @test_run = current_user.test_runs.new(params[:test_run])
     @test_run.user = current_user
@@ -112,8 +112,9 @@ class TestRunsController < ApplicationController
   def update
     local_ports = params[:test_run].delete :local_ports
     local_ports_array = []
-    local_ports.each do |k, v|
-      local_ports_array[k.to_i] = v
+    local_ports_array = [local_ports.delete("0")]
+    local_ports.each do |_, v|
+      local_ports_array << v
     end
     @test_run = TestRun.accessible_by(current_ability).find(params[:id])
     @test_run.local_ports_array = local_ports_array

@@ -1,9 +1,9 @@
-function drawTotalCallsGraph(data, target) {
+function drawTotalCallsGraph(data, target, colors) {
   nv.addGraph(function() {
     var chart = nv.models.stackedAreaChart()
                   .x(function(d) { return d[0] })
                   .y(function(d) { return d[1] })
-                  .color(['#55ff55','#ff2a2a', '#ffcc00'])
+                  .color(colors)
                   .clipEdge(true);
 
     chart.xAxis
