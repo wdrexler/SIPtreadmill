@@ -15,22 +15,26 @@ class TestRunner
     @password = ssh_password
     @vmstat_buffer = []
     @csv_files = []
+    @results   = []
+    @errors    = []
   end
 
   def run
     execute_registration_scenario
     start_receiver_scenario
 
-    result = execute_runner
+    execute_runners
 
     unless @stopped
-      parse_rtcp_data result[:rtcp_data]
+      @results.each do |result|
+        parse_rtcp_data result[:rtcp_data], @test_run.test_run_scenarios.first
+      end
       parse_system_stats @vmstat_buffer if has_stats_credentials?
     end
 
-    @test_run.summary_report = result[:summary_report]
-    @test_run.errors_report_file = result[:errors_report_file]
-    @test_run.stats_file = result[:stats_file]
+    @test_run.summary_report = @results[0][:summary_report] if @results[0]
+    @test_run.errors_report_file = @results[0][:errors_report_file] if @results[0]
+    @test_run.stats_file = @results[0][:stats_file] if @results[0]
     @test_run.save!
   ensure
     halt_receiver_scenario
@@ -38,7 +42,9 @@ class TestRunner
   end
 
   def set_cps(target_cps)
-    @runner.set_cps target_cps
+    @runners.each do |r|
+      r[0].set_cps target_cps
+    end
   end
 
   def stop
@@ -57,7 +63,7 @@ class TestRunner
       max_concurrent: 1,
       destination: @test_run.target.address,
       source: TestRunner::BIND_IP,
-      source_port: @test_run.local_ports_array[1],
+      source_port: @test_run.local_ports_array[0],
       transport_mode: @test_run.profile.transport_type.to_s,
     }
     options[:scenario_variables] = write_csv_data @test_run.registration_scenario if @test_run.registration_scenario.csv_data.present?
@@ -71,7 +77,7 @@ class TestRunner
 
     options = {
       source: TestRunner::BIND_IP,
-      source_port: @test_run.local_ports_array[1],
+      source_port: @test_run.local_ports_array[0],
       transport_mode: @test_run.profile.transport_type.to_s,
       receiver_mode: true
     }
@@ -91,13 +97,29 @@ class TestRunner
     @receiver_runner.wait
   end
 
-  def execute_runner
-    runner_scenario = @test_run.scenario
+  def execute_runners
+    @runners = []
+    @test_run.test_run_scenarios.all[0..-2].each_with_index do |test_run_scenario, i|
+      @runners << execute_runner(test_run_scenario, async: true, scenario_index: i)
+    end
 
-    opts = {
+    last = @test_run.test_run_scenarios.last
+    @runners << execute_runner(last, scenario_index: (@test_run.test_run_scenarios.count - 1))
+
+    until @runners.select { |r| r[1].status }.empty?
+      sleep 1
+    end
+    sleep 1
+    puts "ERRORS #{@errors.inspect}"
+  end
+
+  def execute_runner(test_run_scenario, opts = {})
+    result      = nil
+    sipp_parser = nil
+    runner_opts = {
       source: TestRunner::BIND_IP,
       destination: @test_run.target.address,
-      source_port: @test_run.local_ports_array[0],
+      source_port: @test_run.local_ports_array[opts[:scenario_index] + 1],
       number_of_calls: @test_run.profile.max_calls,
       calls_per_second: @test_run.profile.calls_per_second,
       max_concurrent: @test_run.profile.max_concurrent,
@@ -105,25 +127,33 @@ class TestRunner
       vmstat_buffer: @vmstat_buffer,
       use_time: @test_run.profile.use_time,
       time_limit: @test_run.profile.duration,
-      control_port: @test_run.control_port
+      control_port: test_run_scenario.control_port
     }
 
-    opts[:scenario_variables] = write_csv_data @test_run.scenario if @test_run.scenario.csv_data.present?
+    runner_opts[:scenario_variables] = write_csv_data test_run_scenario.scenario if test_run_scenario.scenario.csv_data.present?
 
-    if has_stats_credentials?
-      opts[:password] = @password
-      opts[:username] = @test_run.target.ssh_username
+    unless opts[:async] || !has_stats_credentials?
+      runner_opts[:password] = @password
+      runner_opts[:username] = @test_run.target.ssh_username
     end
 
-    @runner = Runner.new runner_name, runner_scenario, opts
+    runner = Runner.new runner_name, test_run_scenario.scenario, runner_opts
     Thread.new do
-      @sipp_parser = SippParser.new @runner.stats_file, @test_run
-      @sipp_parser.run
+      sipp_parser = SippParser.new runner.stats_file, test_run_scenario
+      sipp_parser.run
+      @errors << sipp_parser.error if sipp_parser.error
     end
-    result = @runner.run
-    @sipp_parser.stop
-    raise @sipp_parser.error if @sipp_parser.error
-    result
+    runner_thread = Thread.new do
+      begin
+        result = runner.run
+        @results << result
+      rescue => e
+        @errors << e
+      ensure
+        Thread.current.exit
+      end
+    end
+    [runner, runner_thread]
   end
 
   def path(suffix = '')
@@ -150,9 +180,9 @@ class TestRunner
     @test_run.name.downcase.gsub(/\W/, '')
   end
 
-  def parse_rtcp_data(data)
+  def parse_rtcp_data(data, test_run_scenario)
     return unless data
-    RtcpParser.new(data, @test_run).run
+    RtcpParser.new(data, test_run_scenario).run
   end
 
   def parse_system_stats(buffer)

@@ -6,7 +6,8 @@ class Scenario < ActiveRecord::Base
 
   attr_accessible :name, :sipp_xml, :pcap_audio, :pcap_audio_cache, :sippy_cup_scenario, :csv_data, :receiver, :description
   belongs_to :user
-  has_many :test_runs
+  has_many :test_run_scenarios
+  has_many :test_runs, through: :test_run_scenarios
   has_one :registration_scenario, class_name: "Scenario"
 
   mount_uploader :pcap_audio, PcapAudioUploader
@@ -25,7 +26,7 @@ class Scenario < ActiveRecord::Base
       SippyCup::XMLScenario.new name, sipp_xml, pcap_data, opts
     end
   end
- 
+
   def duplicate(requesting_user)
     new_scenario_opts = { name: "#{self.name} (Copy)",
                            description: self.description }
@@ -39,10 +40,10 @@ class Scenario < ActiveRecord::Base
     new_scenario.user = requesting_user
     new_scenario.save ? new_scenario : nil
   end
- 
-   
+
+
   def writable?
-    !(self.test_runs.count > 0)
+    !(self.test_run_scenarios.count > 0)
   end
 
   def sippy_cup_scenario_must_be_valid

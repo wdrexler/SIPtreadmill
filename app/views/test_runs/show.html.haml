@@ -25,16 +25,17 @@
               %dt Owned by
               %dd= @test_run.user.full_name if @test_run.user
 
-            %dt Sender scenario:
-            %dd= link_to(@test_run.scenario.name, @test_run.scenario) if @test_run.scenario
-            %dd= "Port: #{@test_run.local_ports_array[0]}"
+            %dt Sender scenarios:
+            - @test_run.scenarios.each_with_index do |s, i|
+              %dd= link_to(s.name, s) if s
+              %dd= "Port: #{@test_run.local_ports_array[i+1]}"
 
             %dt Registration scenario:
             %dd= link_to(@test_run.registration_scenario.name, @test_run.registration_scenario) if @test_run.registration_scenario
 
             %dt Receiver scenario:
             %dd= link_to(@test_run.receiver_scenario.name, @test_run.receiver_scenario) if @test_run.receiver_scenario
-            %dd= "Port: #{@test_run.local_ports_array[1]}"
+            %dd= "Port: #{@test_run.local_ports_array[0]}"
 
             %dt Profile:
             %dd= link_to @test_run.profile_name, @test_run.profile
@@ -166,6 +167,10 @@
             .box-content.padded
               %pre{style: 'font-size: 0.8em'}
                 = @test_run.summary_report
+:javascript
+  function getColors() {
+    return #{@test_run.total_calls_colors}
+  }
 - if @test_run.state == 'queued' || @test_run.state == 'running'
   :javascript
     var pressTimer;
@@ -236,7 +241,7 @@
 - if @test_run.state =~ /complete/
   :javascript
     $(function() {
-      drawTotalCallsGraph(#{@test_run.total_calls_json}, '#callsChart');
+      drawTotalCallsGraph(#{@test_run.total_calls_json}, '#callsChart', getColors());
       drawLineGraph(#{@test_run.jitter_json}, {'target': '#jitterChart', 'xAxis': 'Time', 'yAxis': 'Jitter'});
       drawLineGraph(#{@test_run.packet_loss_json}, {'target': '#packetLossChart', 'xAxis': 'Time', 'yAxis': 'Packet Loss'});
       drawLineGraph(#{@test_run.call_rate_json}, {'target': '#callRateChart', 'xAxis': 'Time', 'yAxis': 'Calls'});

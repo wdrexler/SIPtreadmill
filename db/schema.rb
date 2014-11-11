@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141014201110) do
+ActiveRecord::Schema.define(:version => 20141111162537) do
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
@@ -27,14 +27,14 @@ ActiveRecord::Schema.define(:version => 20141014201110) do
   end
 
   create_table "rtcp_data", :force => true do |t|
-    t.integer  "test_run_id"
     t.time     "time"
     t.float    "max_packet_loss"
     t.float    "avg_packet_loss"
     t.float    "max_jitter"
     t.float    "avg_jitter"
-    t.datetime "created_at",      :null => false
-    t.datetime "updated_at",      :null => false
+    t.datetime "created_at",           :null => false
+    t.datetime "updated_at",           :null => false
+    t.integer  "test_run_scenario_id"
   end
 
   create_table "scenarios", :force => true do |t|
@@ -52,7 +52,6 @@ ActiveRecord::Schema.define(:version => 20141014201110) do
   end
 
   create_table "sipp_data", :force => true do |t|
-    t.integer  "test_run_id"
     t.time     "time"
     t.integer  "successful_calls"
     t.integer  "failed_calls"
@@ -60,9 +59,10 @@ ActiveRecord::Schema.define(:version => 20141014201110) do
     t.float    "cps"
     t.integer  "concurrent_calls"
     t.float    "avg_call_duration"
-    t.datetime "created_at",        :null => false
-    t.datetime "updated_at",        :null => false
+    t.datetime "created_at",           :null => false
+    t.datetime "updated_at",           :null => false
     t.string   "response_time"
+    t.integer  "test_run_scenario_id"
   end
 
   create_table "system_load_data", :force => true do |t|
@@ -83,10 +83,15 @@ ActiveRecord::Schema.define(:version => 20141014201110) do
     t.string   "ssh_username"
   end
 
+  create_table "test_run_scenarios", :force => true do |t|
+    t.integer "test_run_id"
+    t.integer "scenario_id"
+    t.integer "control_port"
+  end
+
   create_table "test_runs", :force => true do |t|
     t.string   "name"
     t.text     "description"
-    t.integer  "scenario_id"
     t.integer  "profile_id"
     t.integer  "target_id"
     t.datetime "created_at",           :null => false
@@ -104,7 +109,6 @@ ActiveRecord::Schema.define(:version => 20141014201110) do
     t.text     "summary_report"
     t.string   "errors_report_file"
     t.string   "stats_file"
-    t.integer  "control_port"
   end
 
   create_table "users", :force => true do |t|

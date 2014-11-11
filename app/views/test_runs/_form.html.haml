@@ -13,22 +13,34 @@
         = f.input_field :description, :cols => 80, :rows => 3
         %span.help-inline.instructions
           Briefly describe this test. Note especially whether this is a baseline run, or note what changes you have made to the system under test. These notes will help when comparing test runs in the future.
-    .row-fluid
-      .span6
-        = f.label :scenario, label: "Sender scenario"
-        = f.input_field :scenario, collection: Scenario.where(receiver: false).order(:name).all, id: "test_run_scenario_id", name: "test_run[scenario_id]", selected: @test_run.scenario_id, include_blank: true
-        %span#sender_scenario_display.help-inline.instructions
-      .span6
-        %label{for: 'test_run_port1'} Sender Local Bind Port:
-        %input{id: "test_run_port1", name: "test_run[local_ports][0]", value: "#{@test_run.local_ports_array[0].present? ? @test_run.local_ports_array[0] : Kernel.rand(10000...65535)}" }
+    = f.fields_for :test_run_scenarios_attributes do |trs|
+      .row-fluid
+        .span6
+          = trs.label "scenario_id0", label: "Sender scenario"
+          %span.remove-scenario.btn-danger.btn.icon-minus
+          = trs.input_field "scenario_id0", collection: Scenario.where(receiver: false).order(:name).all, selected: (@test_run.test_run_scenarios.first ? @test_run.test_run_scenarios.first.scenario_id : nil), id: "test_run_scenario_id0", name: "test_run[test_run_scenarios_attributes][0][scenario_id]", include_blank: true
+          %span#sender_scenario_display.help-inline.instructions
+        .span6
+          %label{for: 'test_run_port1'} Sender Local Bind Port:
+          %input{id: "test_run_port1", name: "test_run[local_ports][1]", value: "#{@test_run.local_ports_array[1].present? ? @test_run.local_ports_array[1] : Kernel.rand(10000...65535)}" }
+      - (@test_run.test_run_scenarios.all[1..-1] || []).each_with_index do |s, i|
+        .row-fluid
+          .span6
+            %span.remove-scenario.btn-danger.btn.icon-minus
+            = trs.input_field "scenario_id#{i+1}", collection: Scenario.where(receiver: false).order(:name).all, selected: s.scenario_id, id: "test_run_scenario_id#{i+1}", name: "test_run[test_run_scenarios_attributes][#{i+1}][scenario_id]", include_blank: true
+          .span6
+            %input{ id: "test_run_port#{i+2}", name: "test_run[local_ports][#{i+2}]", value: "#{@test_run.local_ports_array[i+2].present? ? @test_run.local_ports_array[i+2] : Kernel.rand(10000...65535)}" }
+      .row-fluid#addScenarioContainer
+        .span6
+          %a.btn.btn-success.icon-plus#addScenario
     .row-fluid
       .span6
         = f.label :receiver_scenario
         = f.input_field :receiver_scenario, collection: Scenario.where(receiver: true).order(:name).all, id: "test_run_receiver_scenario_id", name: "test_run[receiver_scenario_id]", selected: @test_run.receiver_scenario_id, include_blank: true
         %span#receiver_scenario_display.help-inline.instructions
       .span6
-        %label{for: 'test_run_port2'} Receiver Local Bind Port:
-        %input{id: "test_run_port2", name: "test_run[local_ports][1]", value: "#{@test_run.local_ports_array[1].present? ? @test_run.local_ports_array[1] : Kernel.rand(10000...65535)}" }
+        %label{for: 'test_run_port0'} Receiver Local Bind Port:
+        %input{id: "test_run_port0", name: "test_run[local_ports][0]", value: "#{@test_run.local_ports_array[0].present? ? @test_run.local_ports_array[0] : Kernel.rand(10000...65535)}" }
     .row-fluid
       .span12
         = f.label :profile, for: "test_run_profile_id"
@@ -62,3 +74,26 @@
   .modal-body
     .modal-body-content
       = render :template => 'targets/_form', locals: {remote: true, use_json: true}
+
+:javascript
+  var numScenarios = 0;
+  var numPorts     = 1;
+  $('.form-inputs').on('click', '.remove-scenario', function(event) {
+    $(this).parent().parent().remove();
+  });
+  $('#addScenario').on('click', function() {
+    var newRow = $('<div/>', { class: 'row-fluid' });
+    var leftSpan = $('<div/>', { class: 'span6' }).appendTo(newRow);
+    var rightSpan = $('<div/>', { class: 'span6' }).appendTo(newRow);
+    var remove    = $('<span/>', { class: 'remove-scenario btn btn-danger icon-minus'});
+    remove.appendTo(leftSpan);
+    var select = $('[id *= test_run_scenario_id]').first().clone().attr('id', 'test_run_scenario_id' + (++numScenarios)).attr('name', 'test_run[test_run_scenarios_attributes][' + numScenarios + '][scenario_id]');
+    select.appendTo(leftSpan);
+    var port   = $('<input/>', {
+      type: 'text',
+      name: 'test_run[local_ports][' + (++numPorts) + ']',
+      id:   'test_run_port' + numPorts
+    });
+    port.appendTo(rightSpan);
+    $('#addScenarioContainer').before(newRow);
+  });
