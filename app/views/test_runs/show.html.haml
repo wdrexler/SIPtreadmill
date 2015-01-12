@@ -89,6 +89,9 @@
     - if @test_run.state == 'running' || @test_run.state == 'queued'
       .span9
         .box
+          %p= button_to "stop", stop_test_run_path(@test_run), {class: "btn btn-danger"}
+      .span9
+        .box
           .box-header
             %span.title Ramper
           .box-content.padded
