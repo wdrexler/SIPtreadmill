@@ -11,17 +11,20 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140101171241) do
+ActiveRecord::Schema.define(:version => 20150216173416) do
 
   create_table "profiles", :force => true do |t|
     t.string   "name"
     t.integer  "max_calls"
     t.integer  "calls_per_second"
     t.integer  "max_concurrent"
-    t.datetime "created_at",       :null => false
-    t.datetime "updated_at",       :null => false
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
     t.integer  "user_id"
     t.string   "transport_type"
+    t.integer  "calls_per_second_incr"
+    t.integer  "calls_per_second_interval"
+    t.integer  "calls_per_second_max"
   end
 
   create_table "rtcp_data", :force => true do |t|
@@ -98,6 +101,13 @@ ActiveRecord::Schema.define(:version => 20140101171241) do
     t.integer  "receiver_scenario_id"
     t.string   "error_name"
     t.text     "error_message"
+    t.text     "summary_report"
+    t.string   "errors_report_file"
+    t.string   "stats_file"
+    t.string   "to_user"
+    t.string   "from_user"
+    t.string   "advertise_address"
+    t.text     "sipp_options"
   end
 
   create_table "users", :force => true do |t|

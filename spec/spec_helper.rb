@@ -1,5 +1,6 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= 'test'
+ENV['COOKIE_SECRET'] = 'ABCD' * 15
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
 require 'rspec/autorun'
@@ -69,7 +70,7 @@ end
 Fog.mock!
 Fog.credentials_path = Rails.root.join('config/fog_credentials.yml')
 connection = Fog::Storage.new(provider: 'AWS')
-connection.directories.create(key: "foundry_test_tool_#{Rails.env}") # This should not be duplicated from the CarrierWave initializer
+connection.directories.create(key: "sip-treadmill-#{Rails.env}") # This should not be duplicated from the CarrierWave initializer
 
 FactoryGirl.find_definitions
 
@@ -79,3 +80,16 @@ Capybara.register_driver :poltergeist do |app|
 end
 Capybara.javascript_driver = :poltergeist
 Capybara.default_wait_time = 10
+
+if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION >= "1.9"
+  module Kernel
+    alias :__at_exit :at_exit
+    def at_exit(&block)
+      __at_exit do
+        exit_status = $!.status if $!.is_a?(SystemExit)
+        block.call
+        exit exit_status if exit_status
+      end
+    end
+  end
+end

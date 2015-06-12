@@ -14,7 +14,7 @@ Scenarios describe how the calls in a Test Run behave. Call duration, DTMF input
 
 ### Profile
 
-The profile describes the call volume produced by the Test Run. The profile has three main fields: calls per second (how many calls are generated each second), concurrent calls (the number of calls that can occur at one time), and total number of calls for the test run.  
+The profile describes the call volume produced by the Test Run. The profile has three main fields: calls per second (how many calls are generated each second), concurrent calls (the number of calls that can occur at one time), and total number of calls for the test run.
 
 ### Target
 
@@ -22,40 +22,66 @@ The target describes the server on which the SIP application being tested is run
 
 ## The Setup
 
-In order to get started with Treadmill, the following are required:
+### Prerequisites
 
-* [SIPp](http://sipp.sourceforge.net)
-* An [AT&T APIMatrix](https://apimatrix.tfoundry.com) account, or a [GitHub](https://github.com) account.
-* An AT&T APIMatrix application with profile access, or a GitHub application with user access.
-* [Redis](http://redis.io)
-* [PostgreSQL](http://www.postgresql.org/) (preferred, but any other rails-compatible database will do)
-* Amazon S3 credentials for file uploads with CarrierWave
+Optionally:
 
-Once you have all of the pieces, copy `config/database.yml.sample` to `config/database.yml`, and plug in the values required to connect to your database of choice.
+* A [GitHub](https://github.com) account.
+* A GitHub application with user access & credentials for such. Callback URL is `http://yourdomain.com/users/auth/github`.
+* Amazon S3 bucket and credentials for file uploads.
 
-### Environment Variables
+### Installation from packages
+
+The preferred method of installation of SIP Treadmill is to Ubuntu 14.04 via a package:
+
+```
+wget -qO - https://deb.packager.io/key | sudo apt-key add -
+echo "deb https://deb.packager.io/gh/mojolingo/SIPtreadmill trusty master" | sudo tee /etc/apt/sources.list.d/SIPtreadmill.list
+sudo apt-get -y update
+sudo apt-get -y install siptreadmill
+```
+
+After installing the application, you will be requested to run `sudo siptreadmill configure` to complete installation and setup of the database, Redis, SIPp, and a front-end webserver (Apache2), as well as to configure some essential settings of the application.
+
+SIP Treadmill should then be running on port 80.
+
+### Configuration
 
 The majority of configuration for SIP Treadmill is done via environment variables. These environment variables are:
 <dl>
   <dt>COOKIE_SECRET</dt>
   <dd>A secret token used to sign cookies. Should be at least 30 random characters long.</dd>
   <dt>OMNIAUTH_TYPE</dt>
-  <dd>The omniauth method to use. Valid options are 'github' and 'att'</dd>
-  <dt>APIMATRIX_KEY</dt>
-  <dd>The Client ID for your APIMatrix application</dd>
-  <dt>APIMATRIX_SECRET</dt>
-  <dd>The Client Secret for your APIMatrix application</dd>
+  <dd>The omniauth method to use. Valid options are 'github', and 'none'</dd>
   <dt>GITHUB_KEY</dt>
   <dd>The Client ID of your GitHub application</dd>
   <dt>GITHUB_SECRET</dt>
   <dd>The Client secret for your GitHub application</dd>
+  <dt>STORAGE_TYPE</dt>
+  <dd>Storage for uploaded files. Valid options are 's3' and 'file'.</dd>
   <dt>AWS_ACCESS_KEY_ID</dt>
   <dd>The access key ID for your Amazon S3</dd>
   <dt>AWS_SECRET_ACCESS_KEY</dt>
   <dd>The access key secret for your Amazon S3</dd>
+  <dt>AWS_S3_BUCKET</dt>
+  <dd>The name of the Amazon S3 bucket for storage</dd>
+  <dt>FILE_PATH</dt>
+  <dd>Location of uploaded files on local filesystem.</dd>
   <dt>TEST_RUN_BIND_IP</dt>
   <dd>The IP address to bind to for sending SIP traffic</dd>
 </dl>
+
+You can change these settings using `sudo siptreadmill config:set KEY=value`.
+
+### Dependencies (for manual installation)
+
+In order to get started with Treadmill, the following are required:
+
+* [SIPp](http://sipp.sourceforge.net) - MUST BE A DEVELOPMENT BUILD, see https://github.com/SIPp/sipp/pull/106
+* [Redis](http://redis.io)
+* [PostgreSQL](http://www.postgresql.org/) (preferred, but any other Rails-compatible database will do)
+
+Ensure that the user running the worker process has passwordless sudo access to run SIPp.
 
 ## Development environment
 
@@ -65,6 +91,7 @@ The majority of configuration for SIP Treadmill is done via environment variable
 4. Add the [librarian-chef plugin](https://github.com/jimmycuadra/vagrant-librarian-chef) to your Vagrant installation by doing `vagrant plugin install vagrant-librarian-chef`.
 4. Build the VMs: `vagrant up`
 5. SSH into the `dev` VM (`vagrant ssh dev`), move to `/srv/treadmill/current` and run the specs (`rake spec`)
+6. Copy `.env.sample` to `.env`.
 6. Launch the app (`foreman start`).
 6. You can access the app via http://dev.local.treadmill.mojolingo.net:5000/
 
