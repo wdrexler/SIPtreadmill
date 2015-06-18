@@ -46,8 +46,6 @@ var refreshTestRun = function(test_run_id) {
     });
   }
 }
-<<<<<<< HEAD
-=======
 
 var increaseCallRate = function(test_run_id) {
   if(test_run_id !== null) {
@@ -90,9 +88,6 @@ var decreaseCallRate = function(test_run_id) {
     }
   }
 }
-<<<<<<< HEAD
->>>>>>> add UI for Rampping (up/down)
-=======
 
 var submitCallRate = function(test_run_id) {
   if(test_run_id !== null) {
@@ -114,4 +109,3 @@ var submitCallRate = function(test_run_id) {
     }
   }
 }
->>>>>>> add a submit button for call rate

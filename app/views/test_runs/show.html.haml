@@ -236,23 +236,13 @@
         clearInterval(interval);
       });
 
-<<<<<<< HEAD
       $('#btn_submit_call_rate').on('click', function () {
         submitCallRate(#{@test_run.id});
       });
-=======
       $('#graphs').hide();
       $('#stats').hide();
       $('#summary').hide();
       setTestRunInterval();
-    });
-- if @test_run.state == 'pending'
-  :javascript
-    $(function() {
-      $('#graphs').hide();
-      $('#stats').hide();
-      $('#summary').hide();
->>>>>>> Style cleanup, enhancements, and merge conflict resolution for the TestRun#show view
     });
 
 - if @test_run.state =~ /complete/
